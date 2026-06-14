@@ -10,6 +10,7 @@ const UsersPage = () => {
   
   // Form state
   const [formData, setFormData] = useState({
+    id: null,
     nombre: '',
     apellido: '',
     correo: '',
@@ -39,7 +40,21 @@ const UsersPage = () => {
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => {
     setOpenModal(false);
-    setFormData({ nombre: '', apellido: '', correo: '', celular: '', contraseña: '', rol_id: 2, estado: true });
+    setFormData({ id: null, nombre: '', apellido: '', correo: '', celular: '', contraseña: '', rol_id: 2, estado: true });
+  };
+
+  const handleOpenEdit = (user) => {
+    setFormData({
+      id: user.id,
+      nombre: user.nombre,
+      apellido: user.apellido || '',
+      correo: user.correo,
+      celular: user.celular || '',
+      contraseña: '', 
+      rol_id: user.rol_id,
+      estado: user.estado === 1 || user.estado === true
+    });
+    setOpenModal(true);
   };
 
   const handleChange = (e) => {
@@ -56,20 +71,25 @@ const UsersPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.nombre || !formData.correo || !formData.contraseña) {
+    if (!formData.nombre || !formData.correo || (!formData.id && !formData.contraseña)) {
       setSnackbar({ open: true, message: 'Por favor completa todos los campos obligatorios.', severity: 'warning' });
       return;
     }
 
     try {
-      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/usuarios', {
-        method: 'POST',
+      const isEdit = !!formData.id;
+      const url = isEdit 
+        ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/usuarios/${formData.id}`
+        : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/usuarios`;
+
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       
       if (response.ok) {
-        setSnackbar({ open: true, message: 'Usuario registrado exitosamente', severity: 'success' });
+        setSnackbar({ open: true, message: isEdit ? 'Usuario actualizado exitosamente' : 'Usuario registrado exitosamente', severity: 'success' });
         handleCloseModal();
         fetchUsers();
       } else {
@@ -77,7 +97,7 @@ const UsersPage = () => {
         setSnackbar({ open: true, message: `Error: ${errorData.mensaje}`, severity: 'error' });
       }
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('Error saving user:', error);
       setSnackbar({ open: true, message: 'Error de conexión con el servidor', severity: 'error' });
     }
   };
@@ -268,7 +288,7 @@ const UsersPage = () => {
                     </TableCell>
                     <TableCell sx={{ textAlign: 'right' }}>
                       <Tooltip title="Editar Usuario">
-                        <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light' } }}>
+                        <IconButton size="small" onClick={() => handleOpenEdit(user)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light' } }}>
                           <Edit2 size={18} />
                         </IconButton>
                       </Tooltip>
@@ -298,7 +318,7 @@ const UsersPage = () => {
 
       {/* Modal de Nuevo Usuario */}
       <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-        <DialogTitle>Registrar Nuevo Usuario</DialogTitle>
+        <DialogTitle>{formData.id ? 'Editar Usuario' : 'Registrar Nuevo Usuario'}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '24px !important' }}>
           
           <Box>
@@ -368,7 +388,7 @@ const UsersPage = () => {
               <Typography variant="body2" fontWeight={600}>Contraseña</Typography>
             </Box>
             <TextField
-              placeholder="Ingresa una contraseña segura"
+              placeholder={formData.id ? "Déjala vacía si no deseas cambiarla" : "Ingresa una contraseña segura"}
               name="contraseña"
               type="password"
               value={formData.contraseña}
