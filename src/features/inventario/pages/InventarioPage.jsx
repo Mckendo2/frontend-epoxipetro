@@ -14,6 +14,38 @@ const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocal
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
 
+const compressImage = (file, maxWidth = 800, maxHeight = 800, quality = 0.7) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' }));
+        }, 'image/jpeg', quality);
+      };
+    };
+  });
+};
 const InventarioPage = () => {
   const [productos, setProductos] = useState([]);
   const [catalogos, setCatalogos] = useState({ categorias: [], marcas: [], unidades: [] });
@@ -104,11 +136,16 @@ const InventarioPage = () => {
     setModalProducto(true);
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormProducto({ ...formProducto, imagen: file });
-      setPreview(URL.createObjectURL(file));
+      if (file.type.startsWith('image/')) {
+        const compressedFile = await compressImage(file);
+        setFormProducto({ ...formProducto, imagen: compressedFile });
+        setPreview(URL.createObjectURL(compressedFile));
+      } else {
+        notify('Por favor selecciona una imagen válida', 'warning');
+      }
     }
   };
 
@@ -589,10 +626,14 @@ const InventarioPage = () => {
           </Box>
           <Box>
             <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Imagen (Opcional)</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
               <Button variant="outlined" component="label" size="small" sx={{ textTransform: 'none' }}>
-                Subir Imagen
+                Galería
                 <input type="file" hidden accept="image/*" onChange={handleImageChange} />
+              </Button>
+              <Button variant="outlined" component="label" size="small" sx={{ textTransform: 'none' }}>
+                Cámara
+                <input type="file" hidden accept="image/*" capture="environment" onChange={handleImageChange} />
               </Button>
               {preview && (
                 <img src={preview} alt="Vista previa" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
