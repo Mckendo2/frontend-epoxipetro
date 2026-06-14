@@ -148,9 +148,9 @@ const LoginPage = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontSize: '1.2rem', fontWeight: 'bold',
               boxShadow: '0 4px 15px rgba(99,102,241,0.4)'
-            }}>E</Box>
+            }}>A</Box>
             <Typography variant="h6" fontWeight="bold" sx={{ color: '#fff' }}>
-              Epoxi<span style={{ color: '#6366f1' }}>Petro</span>
+              Alvarez<span style={{ color: '#6366f1' }}>App</span>
             </Typography>
           </Box>
 
@@ -339,9 +339,9 @@ const LoginPage = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'white', fontSize: '2rem', fontWeight: 'bold', mb: 3,
             boxShadow: '0 8px 30px rgba(99,102,241,0.5)'
-          }}>E</Box>
+          }}>A</Box>
           <Typography variant="h3" fontWeight="bold" sx={{ color: '#ffffff', letterSpacing: '-0.5px', mb: 2 }}>
-            Epoxi<span style={{ color: '#6366f1' }}>Petro</span>
+            Alvarez<span style={{ color: '#6366f1' }}>App</span>
           </Typography>
           <Typography variant="body1" sx={{ color: '#94a3b8', maxWidth: 380 }}>
             Sistema de Gestión y Control de Inventarios, Ventas y Caja para negocios modernos.
