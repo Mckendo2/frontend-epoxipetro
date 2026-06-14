@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'http://localhost:3000/api/auth/login';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/auth/login';
 
 const LoginPage = () => {
   const [correo, setCorreo] = useState('');

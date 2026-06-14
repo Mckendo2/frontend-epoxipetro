@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
-const API = 'http://localhost:3000/api/usuarios/perfil';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/usuarios/perfil';
 
 const formatFecha = (d) => {
   if (!d) return '—';
@@ -72,7 +72,7 @@ const ModalCambiarContrasena = ({ open, onClose }) => {
 
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/usuarios/perfil/contrasena', {
+      const res = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/usuarios/perfil/contrasena', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

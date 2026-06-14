@@ -9,7 +9,7 @@ import {
   ShieldCheck, Plus, Search, Edit2, Trash2, CheckCircle, ShieldAlert
 } from 'lucide-react';
 
-const API_ROLES = 'http://localhost:3000/api/roles';
+const API_ROLES = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/roles';
 
 const RolesPage = () => {
   const [roles, setRoles] = useState([]);

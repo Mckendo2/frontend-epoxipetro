@@ -12,8 +12,8 @@ import {
 import { useReactToPrint } from 'react-to-print';
 import TicketVenta from '../../ventas/components/TicketVenta';
 
-const API_VEN = 'http://localhost:3000/api/ventas';
-const API_GAS = 'http://localhost:3000/api/gastos';
+const API_VEN = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/ventas';
+const API_GAS = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/gastos';
 
 const METODOS_PAGO = [
   { value: 'efectivo',      label: 'Efectivo',      icon: <Banknote size={16} /> },

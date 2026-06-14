@@ -6,8 +6,8 @@ import {
 import { ShieldCheck, Save, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
-const ROLES_API = 'http://localhost:3000/api/roles';
-const PERMISOS_API = 'http://localhost:3000/api/permisos';
+const ROLES_API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/roles';
+const PERMISOS_API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/permisos';
 
 const PermisosPage = () => {
   const { hasPermission } = useAuth();

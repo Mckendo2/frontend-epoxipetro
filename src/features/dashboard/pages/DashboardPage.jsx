@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { linearRegression, linearRegressionLine } from 'simple-statistics';
 
-const API = 'http://localhost:3000/api/dashboard';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/dashboard';
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');

@@ -7,7 +7,7 @@ import {
 import { Store, Search, AlertTriangle, Barcode, Package, XCircle, QrCode, ChevronDown, Copy, ExternalLink } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
-const API = 'http://localhost:3000/api/inventario';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
 
@@ -181,7 +181,7 @@ const TiendaPage = () => {
                           onClick={(e) => {
                             if(pr.imagen_url) {
                               e.stopPropagation();
-                              setVisorImagen({ open: true, src: `http://localhost:3000${pr.imagen_url}`, title: pr.producto });
+                              setVisorImagen({ open: true, src: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${pr.imagen_url}`, title: pr.producto });
                             }
                           }}
                           sx={{ 
@@ -194,7 +194,7 @@ const TiendaPage = () => {
                           }}
                         >
                           {pr.imagen_url ? (
-                            <img src={`http://localhost:3000${pr.imagen_url}`} alt={pr.producto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${pr.imagen_url}`} alt={pr.producto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
                             <Package size={20} color="#6366f1" />
                           )}

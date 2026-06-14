@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { Tags, Layers, Edit2, Trash2, Plus } from 'lucide-react';
 
-const API = 'http://localhost:3000/api/inventario';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
 
 const CatalogosPage = () => {
   const [tabIndex, setTabIndex] = useState(0);

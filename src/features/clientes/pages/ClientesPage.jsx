@@ -20,7 +20,7 @@ const ClientesPage = () => {
   const fetchClientes = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/clientes');
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/clientes');
       const data = await response.json();
       setClientes(data);
     } catch (error) {
@@ -57,7 +57,7 @@ const ClientesPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/clientes', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/clientes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

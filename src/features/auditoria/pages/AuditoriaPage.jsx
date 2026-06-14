@@ -7,7 +7,7 @@ import {
 import { Activity, Calendar, Shield, Info } from 'lucide-react';
 import { format } from 'date-fns';
 
-const API = 'http://localhost:3000/api/auditoria';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/auditoria';
 
 const AuditoriaPage = () => {
   const [tabIndex, setTabIndex] = useState(0);

@@ -13,9 +13,9 @@ import { useReactToPrint } from 'react-to-print';
 import TicketVenta from '../components/TicketVenta';
 import { useAuth } from '../../../context/AuthContext';
 
-const API_INV = 'http://localhost:3000/api/inventario';
-const API_VEN = 'http://localhost:3000/api/ventas';
-const API_GAS = 'http://localhost:3000/api/gastos';
+const API_INV = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
+const API_VEN = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/ventas';
+const API_GAS = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/gastos';
 
 const METODOS_PAGO = [
   { value: 'efectivo',      label: 'Efectivo',      icon: <Banknote size={24} /> },
@@ -135,7 +135,7 @@ const VentasPage = () => {
     }
     setProcesandoCliente(true);
     try {
-      const res = await fetch('http://localhost:3000/api/clientes', {
+      const res = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/clientes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nuevoCliente)
@@ -398,7 +398,7 @@ const VentasPage = () => {
                       bgcolor: pr.imagen_url ? 'transparent' : 'rgba(99,102,241,0.08)' 
                     }}>
                       {pr.imagen_url ? (
-                        <img src={`http://localhost:3000${pr.imagen_url}`} alt={pr.producto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${pr.imagen_url}`} alt={pr.producto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <Package size={32} color="#6366f1" opacity={0.6} />
                       )}

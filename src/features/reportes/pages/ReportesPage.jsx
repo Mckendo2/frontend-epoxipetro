@@ -4,7 +4,7 @@ import { FileDown, FileText, Users, TrendingUp, Warehouse, DollarSign } from 'lu
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const API = 'http://localhost:3000/api/reportes';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/reportes';
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
 

@@ -12,7 +12,7 @@ import {
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
 
-const API = 'http://localhost:3000/api/inventario';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
 
 const InventarioPage = () => {
   const [productos, setProductos] = useState([]);
@@ -100,7 +100,7 @@ const InventarioPage = () => {
       imagen: null,
       imagen_url: producto.imagen_url || ''
     });
-    setPreview(producto.imagen_url ? `http://localhost:3000${producto.imagen_url}` : null);
+    setPreview(producto.imagen_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${producto.imagen_url}` : null);
     setModalProducto(true);
   };
 
@@ -415,7 +415,7 @@ const InventarioPage = () => {
                           onClick={(e) => {
                             if(producto.imagen_url) {
                               e.stopPropagation();
-                              setVisorImagen({ open: true, src: `http://localhost:3000${producto.imagen_url}`, title: producto.nombre });
+                              setVisorImagen({ open: true, src: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${producto.imagen_url}`, title: producto.nombre });
                             }
                           }}
                           sx={{ 
@@ -428,7 +428,7 @@ const InventarioPage = () => {
                           }}
                         >
                           {producto.imagen_url ? (
-                            <img src={`http://localhost:3000${producto.imagen_url}`} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${producto.imagen_url}`} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
                             <Package size={20} color="#6366f1" />
                           )}

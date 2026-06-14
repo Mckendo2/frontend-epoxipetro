@@ -14,9 +14,9 @@ import { useReactToPrint } from 'react-to-print';
 import TicketCotizacion from '../components/TicketCotizacion';
 import { useAuth } from '../../../context/AuthContext';
 
-const API_INV = 'http://localhost:3000/api/inventario';
-const API_COTIZACIONES = 'http://localhost:3000/api/cotizaciones';
-const API_VEN = 'http://localhost:3000/api/ventas';
+const API_INV = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
+const API_COTIZACIONES = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/cotizaciones';
+const API_VEN = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/ventas';
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
 
@@ -373,7 +373,7 @@ const CotizacionesPage = () => {
                       )}
                       <Box sx={{ width: 80, height: 80, mb: 1, borderRadius: 2, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: pr.imagen_url ? 'transparent' : 'rgba(99,102,241,0.08)' }}>
                         {pr.imagen_url ? (
-                          <img src={`http://localhost:3000${pr.imagen_url}`} alt={pr.producto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${pr.imagen_url}`} alt={pr.producto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Package size={32} color="#6366f1" opacity={0.6} />
                         )}
@@ -411,7 +411,7 @@ const CotizacionesPage = () => {
                           <TableCell>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                               {item.imagen_url ? (
-                                <img src={`http://localhost:3000${item.imagen_url}`} alt={item.producto} style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }} />
+                                <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${item.imagen_url}`} alt={item.producto} style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }} />
                               ) : (
                                 <Box sx={{ width: 40, height: 40, borderRadius: 1, bgcolor: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   <Package size={20} color="#9ca3af" />

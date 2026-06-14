@@ -22,7 +22,7 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/usuarios');
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/usuarios');
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -62,7 +62,7 @@ const UsersPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/usuarios', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/usuarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -84,7 +84,7 @@ const UsersPage = () => {
 
   const handleToggleStatus = async (id, currentStatus) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/usuarios/${id}/estado`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/usuarios/${id}/estado`, {
         method: 'PUT',
       });
       

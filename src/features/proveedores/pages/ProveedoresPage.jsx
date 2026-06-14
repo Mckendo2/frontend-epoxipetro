@@ -12,7 +12,7 @@ import {
   CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet
 } from 'lucide-react';
 
-const API = 'http://localhost:3000/api/proveedores';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/proveedores';
 
 const formatMonto = (v) => Number(parseFloat(v || 0).toFixed(2)).toLocaleString('de-DE');
 
