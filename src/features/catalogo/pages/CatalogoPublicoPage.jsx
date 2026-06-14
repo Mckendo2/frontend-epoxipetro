@@ -6,7 +6,7 @@ import {
 import { ShoppingCart, Plus, Minus, X, Package, MessageCircle } from 'lucide-react';
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/public';
-const WHATSAPP_NUMBER = '59167341831'; // Número proporcionado por el usuario
+const WHATSAPP_NUMBER = '59165555942'; // Número proporcionado por el usuario
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
 
