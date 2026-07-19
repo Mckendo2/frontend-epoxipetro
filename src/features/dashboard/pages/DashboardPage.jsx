@@ -84,7 +84,6 @@ const DashboardPage = () => {
     { title: 'Ingresos Totales',        value: `Bs. ${formatMonto(data.kpis.ingresos)}`,          icon: <DollarSign size={20} />, color: '#10b981' },
     { title: 'Total Ventas',            value: data.kpis.totalVentas,                             icon: <ShoppingBag size={20} />, color: '#6366f1' },
     { title: 'Por Cobrar a Clientes',   value: `Bs. ${formatMonto(data.kpis.cuentasPorCobrar)}`,  icon: <CreditCard size={20} />, color: '#ef4444' },
-    { title: 'Clientes Activos',        value: data.kpis.clientesActivos,                         icon: <Users size={20} />, color: '#f59e0b' },
     { title: 'Deuda a Proveedores',     value: `Bs. ${formatMonto(data.kpis.deudaProveedores)}`,  icon: <Truck size={20} />, color: '#f97316' },
   ];
 
