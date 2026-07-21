@@ -16,6 +16,7 @@ const ClientesPage = () => {
     correo: '',
     direccion: ''
   });
+  const [editingId, setEditingId] = useState(null);
 
   const fetchClientes = async () => {
     setLoading(true);
@@ -38,6 +39,7 @@ const ClientesPage = () => {
   const handleCloseModal = () => {
     setOpenModal(false);
     setFormData({ nombre: '', apellido: '', telefono: '', correo: '', direccion: '' });
+    setEditingId(null);
   };
 
   const handleChange = (e) => {
@@ -50,6 +52,39 @@ const ClientesPage = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  const handleEditClick = (cliente) => {
+    setFormData({
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      telefono: cliente.telefono,
+      correo: cliente.correo || '',
+      direccion: cliente.direccion || ''
+    });
+    setEditingId(cliente.id);
+    setOpenModal(true);
+  };
+
+  const handleDeleteClick = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente?')) return;
+    
+    try {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + `/api/clientes/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        setSnackbar({ open: true, message: 'Cliente eliminado exitosamente', severity: 'success' });
+        fetchClientes();
+      } else {
+        const errorData = await response.json();
+        setSnackbar({ open: true, message: `Error: ${errorData.mensaje}`, severity: 'error' });
+      }
+    } catch (error) {
+      console.error('Error deleting cliente:', error);
+      setSnackbar({ open: true, message: 'Error de conexión con el servidor', severity: 'error' });
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.nombre || !formData.apellido || !formData.telefono) {
       setSnackbar({ open: true, message: 'Nombre, apellido y teléfono son obligatorios.', severity: 'warning' });
@@ -57,14 +92,17 @@ const ClientesPage = () => {
     }
 
     try {
-      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/clientes', {
-        method: 'POST',
+      const url = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + (editingId ? `/api/clientes/${editingId}` : '/api/clientes');
+      const method = editingId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       
       if (response.ok) {
-        setSnackbar({ open: true, message: 'Cliente registrado exitosamente', severity: 'success' });
+        setSnackbar({ open: true, message: `Cliente ${editingId ? 'actualizado' : 'registrado'} exitosamente`, severity: 'success' });
         handleCloseModal();
         fetchClientes();
       } else {
@@ -72,7 +110,7 @@ const ClientesPage = () => {
         setSnackbar({ open: true, message: `Error: ${errorData.mensaje}`, severity: 'error' });
       }
     } catch (error) {
-      console.error('Error creating cliente:', error);
+      console.error('Error saving cliente:', error);
       setSnackbar({ open: true, message: 'Error de conexión con el servidor', severity: 'error' });
     }
   };
@@ -180,10 +218,10 @@ const ClientesPage = () => {
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ textAlign: 'right' }}>
-                      <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light' } }}>
+                      <IconButton size="small" onClick={() => handleEditClick(cliente)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light' } }}>
                         <Edit2 size={18} />
                       </IconButton>
-                      <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#ef4444' } }}>
+                      <IconButton size="small" onClick={() => handleDeleteClick(cliente.id)} sx={{ color: 'text.secondary', '&:hover': { color: '#ef4444' } }}>
                         <Trash2 size={18} />
                       </IconButton>
                     </TableCell>
@@ -195,9 +233,9 @@ const ClientesPage = () => {
         </TableContainer>
       </Card>
 
-      {/* Modal de Nuevo Cliente */}
+      {/* Modal de Nuevo/Editar Cliente */}
       <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-        <DialogTitle>Registrar Nuevo Cliente</DialogTitle>
+        <DialogTitle>{editingId ? 'Editar Cliente' : 'Registrar Nuevo Cliente'}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '24px !important' }}>
           
           <Box>
@@ -282,7 +320,7 @@ const ClientesPage = () => {
             Cancelar
           </Button>
           <Button onClick={handleSubmit} variant="contained" color="primary" sx={{ textTransform: 'none' }}>
-            Guardar Cliente
+            {editingId ? 'Actualizar Cliente' : 'Guardar Cliente'}
           </Button>
         </DialogActions>
       </Dialog>

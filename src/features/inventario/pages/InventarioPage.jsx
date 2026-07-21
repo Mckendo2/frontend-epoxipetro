@@ -59,7 +59,6 @@ const InventarioPage = () => {
   // Modals
   const [modalProducto, setModalProducto] = useState(false);
   const [modalPresentacion, setModalPresentacion] = useState(false);
-  const [modalEntrada, setModalEntrada] = useState(false);
   const [modalTraslado, setModalTraslado] = useState(false);
   const [modalEditarPresentacion, setModalEditarPresentacion] = useState(false);
   const [selectedPresentacion, setSelectedPresentacion] = useState(null);
@@ -163,15 +162,6 @@ const InventarioPage = () => {
     try {
       const res = await fetch(`${API}/presentaciones/${formEditarPresentacion.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formEditarPresentacion) });
       if (res.ok) { notify('Presentación actualizada'); setModalEditarPresentacion(false); fetchData(); }
-      else { const err = await res.json(); notify(err.mensaje, 'error'); }
-    } catch { notify('Error de conexión', 'error'); }
-  };
-
-  const handleEntrada = async () => {
-    if (!formMovimiento.cantidad || formMovimiento.cantidad <= 0) return notify('Ingresa una cantidad válida', 'warning');
-    try {
-      const res = await fetch(`${API}/movimientos/entrada-almacen`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presentacion_id: selectedPresentacion.id, ...formMovimiento }) });
-      if (res.ok) { notify(`✓ Entrada registrada en Almacén`); setModalEntrada(false); setFormMovimiento({ cantidad: '', nota: '' }); fetchData(); }
       else { const err = await res.json(); notify(err.mensaje, 'error'); }
     } catch { notify('Error de conexión', 'error'); }
   };
@@ -519,11 +509,7 @@ const InventarioPage = () => {
                                       <Typography variant="body2" color="text.secondary">{pr.stock_almacen} {pr.unidad}</Typography>
                                     </TableCell>
                                     <TableCell sx={{ textAlign: 'right' }}>
-                                      <Tooltip title="Entrada a Almacén">
-                                        <IconButton size="small" sx={{ color: '#10b981' }} onClick={(e) => { e.stopPropagation(); setSelectedPresentacion(pr); setModalEntrada(true); }}>
-                                          <Warehouse size={16} />
-                                        </IconButton>
-                                      </Tooltip>
+
                                       <Tooltip title="Trasladar a Tienda">
                                         <IconButton size="small" sx={{ color: '#6366f1' }} onClick={(e) => { e.stopPropagation(); setSelectedPresentacion(pr); setModalTraslado(true); }}>
                                           <ArrowRightLeft size={16} />
@@ -609,31 +595,6 @@ const InventarioPage = () => {
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setModalEditarPresentacion(false)} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
           <Button onClick={handleActualizarPresentacion} variant="contained" sx={{ textTransform: 'none' }}>Actualizar Presentación</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Modal Entrada Almacén */}
-      <Dialog open={modalEntrada} onClose={() => setModalEntrada(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Entrada a Almacén</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
-          {selectedPresentacion && (
-            <Box sx={{ p: 2, borderRadius: 1, backgroundColor: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
-              <Typography variant="body2" fontWeight={700} color="primary.main">{selectedPresentacion.nombre}</Typography>
-              <Typography variant="caption" color="text.secondary">Stock actual en almacén: {selectedPresentacion.stock_almacen}</Typography>
-            </Box>
-          )}
-          <Box>
-            <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Cantidad a Ingresar</Typography>
-            <TextField type="number" placeholder="0" value={formMovimiento.cantidad} onChange={e => setFormMovimiento({ ...formMovimiento, cantidad: e.target.value })} fullWidth size="small" />
-          </Box>
-          <Box>
-            <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Nota (Opcional)</Typography>
-            <TextField placeholder="Ej. Compra a proveedor Petro" value={formMovimiento.nota} onChange={e => setFormMovimiento({ ...formMovimiento, nota: e.target.value })} fullWidth size="small" />
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setModalEntrada(false)} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
-          <Button onClick={handleEntrada} variant="contained" color="success" sx={{ textTransform: 'none' }}>Registrar Entrada</Button>
         </DialogActions>
       </Dialog>
 
