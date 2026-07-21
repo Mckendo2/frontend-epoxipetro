@@ -15,8 +15,8 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
         <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '16px', textTransform: 'uppercase' }}>
           FERRETERÍA ALVAREZ
         </Typography>
-        <Typography sx={{ fontSize: '12px' }}>La Paz, Bolivia</Typography>
-        <Typography sx={{ fontSize: '12px' }}>Cel: +591 67341831</Typography>
+        <Typography sx={{ fontSize: '12px' }}>La Paz, El Alto</Typography>
+        <Typography sx={{ fontSize: '12px' }}>Cel: +591 65555942</Typography>
         <Typography sx={{ fontSize: '12px' }}>--------------------------------</Typography>
         <Typography fontWeight="bold" sx={{ fontSize: '14px', mt: 1 }}>COTIZACIÓN / PRE-VENTA</Typography>
       </Box>
@@ -26,7 +26,7 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
         <Typography sx={{ fontSize: '12px' }}>Nro: {cotizacionInfo?.id}</Typography>
         <Typography sx={{ fontSize: '12px' }}>Fecha: {new Date(cotizacionInfo?.fecha || Date.now()).toLocaleString('es-BO')}</Typography>
         <Typography sx={{ fontSize: '12px' }}>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'General'}</Typography>
-        <Typography sx={{ fontSize: '12px' }}>C.I./NIT: {cliente?.telefono || 'S/N'}</Typography>
+
       </Box>
 
       <Typography sx={{ fontSize: '12px' }}>--------------------------------</Typography>
@@ -38,7 +38,7 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
           <Typography sx={{ fontSize: '12px', width: '25%', textAlign: 'right' }}>P.U.</Typography>
           <Typography sx={{ fontSize: '12px', width: '25%', textAlign: 'right' }}>SubT</Typography>
         </Box>
-        
+
         {items?.map((item, index) => (
           <Box key={index} sx={{ mb: 1 }}>
             <Typography sx={{ fontSize: '12px', lineHeight: 1.2 }}>{item.producto} {item.nombre !== 'Unidad' ? `- ${item.nombre}` : ''}</Typography>
@@ -70,7 +70,7 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
       </Box>
 
       <Typography sx={{ fontSize: '12px', mt: 2 }}>--------------------------------</Typography>
-      
+
       {/* Pie de página */}
       <Box sx={{ textAlign: 'center', mt: 1 }}>
         <Typography sx={{ fontSize: '12px' }}>¡Gracias por su preferencia!</Typography>
