@@ -46,8 +46,7 @@ const TiendaPage = () => {
     pr.producto.toLowerCase().includes(busqueda.toLowerCase()) ||
     pr.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     pr.categoria?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    pr.codigo_barras?.includes(busqueda) ||
-    pr.sku?.includes(busqueda)
+    pr.codigo_barras?.includes(busqueda)
   ).sort((a, b) => {
     if (orden === 'nombre') return a.producto.localeCompare(b.producto);
     if (orden === 'stock') return b.stock_tienda - a.stock_tienda;
@@ -129,7 +128,7 @@ const TiendaPage = () => {
       <Card sx={{ overflow: 'hidden' }}>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <TextField
-            placeholder="Buscar por nombre, categoría, código de barras o SKU..."
+            placeholder="Buscar por nombre, categoría o código de barras..."
             size="small"
             sx={{ flex: 1, minWidth: '300px' }}
             value={busqueda}

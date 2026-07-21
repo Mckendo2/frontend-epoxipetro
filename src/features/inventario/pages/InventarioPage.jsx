@@ -66,8 +66,8 @@ const InventarioPage = () => {
 
   const [formProducto, setFormProducto] = useState({ id: '', nombre: '', descripcion: '', categoria_id: '', marca_id: '', imagen: null, imagen_url: '' });
   const [preview, setPreview] = useState(null);
-  const [formPresentacion, setFormPresentacion] = useState({ producto_id: '', nombre: '', codigo_barras: '', sku: '', unidad_medida_id: '', cantidad_unidad: 1, precio_compra: '', precio_venta: '' });
-  const [formEditarPresentacion, setFormEditarPresentacion] = useState({ id: '', nombre: '', codigo_barras: '', sku: '', unidad_medida_id: '', precio_compra: '', precio_venta: '' });
+  const [formPresentacion, setFormPresentacion] = useState({ producto_id: '', nombre: '', codigo_barras: '', unidad_medida_id: '', cantidad_unidad: 1, precio_compra: '', precio_venta: '' });
+  const [formEditarPresentacion, setFormEditarPresentacion] = useState({ id: '', nombre: '', codigo_barras: '', unidad_medida_id: '', precio_compra: '', precio_venta: '' });
   const [formMovimiento, setFormMovimiento] = useState({ cantidad: '', nota: '' });
   const [visorImagen, setVisorImagen] = useState({ open: false, src: '', title: '' });
 
@@ -153,7 +153,7 @@ const InventarioPage = () => {
     if (!formPresentacion.producto_id || !formPresentacion.nombre || !formPresentacion.precio_venta) return notify('Producto, nombre y precio de venta son obligatorios', 'warning');
     try {
       const res = await fetch(`${API}/presentaciones`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formPresentacion) });
-      if (res.ok) { notify('Presentación creada'); setModalPresentacion(false); setFormPresentacion({ producto_id: '', nombre: '', codigo_barras: '', sku: '', unidad_medida_id: '', cantidad_unidad: 1, precio_compra: '', precio_venta: '' }); fetchData(); }
+      if (res.ok) { notify('Presentación creada'); setModalPresentacion(false); setFormPresentacion({ producto_id: '', nombre: '', codigo_barras: '', unidad_medida_id: '', cantidad_unidad: 1, precio_compra: '', precio_venta: '' }); fetchData(); }
       else { const err = await res.json(); notify(err.mensaje, 'error'); }
     } catch { notify('Error de conexión', 'error'); }
   };
@@ -189,7 +189,7 @@ const InventarioPage = () => {
     const coincideCategoria = filtroCategoria === '' || p.categoria === filtroCategoria;
     const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.categoria?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      p.presentaciones?.some(pr => pr.codigo_barras?.includes(busqueda) || pr.sku?.includes(busqueda));
+      p.presentaciones?.some(pr => pr.codigo_barras?.includes(busqueda));
     return coincideCategoria && coincideBusqueda;
   });
 
@@ -296,51 +296,8 @@ const InventarioPage = () => {
             Exportar Plantilla
           </Button>
 
-          {/* Botón secundario: Nueva Presentación — estilo teal/verde, outline */}
-          <Button
-            variant="outlined"
-            onClick={() => setModalPresentacion(true)}
-            startIcon={<Tag size={16} />}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              borderColor: '#10b981',
-              color: '#10b981',
-              borderRadius: '10px',
-              px: 2,
-              '&:hover': {
-                backgroundColor: 'rgba(16,185,129,0.08)',
-                borderColor: '#10b981',
-              }
-            }}
-          >
-            Nueva Presentación
-          </Button>
 
-          {/* Botón principal: Nuevo Producto — sólido morado con sombra */}
-          <Button
-            variant="contained"
-            onClick={() => {
-              setFormProducto({ id: '', nombre: '', descripcion: '', categoria_id: '', marca_id: '', imagen: null, imagen_url: '' });
-              setPreview(null);
-              setModalProducto(true);
-            }}
-            startIcon={<Package size={16} />}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: '10px',
-              px: 2,
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-              boxShadow: '0 4px 14px 0 rgba(99,102,241,0.45)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-                boxShadow: '0 6px 20px 0 rgba(99,102,241,0.55)',
-              }
-            }}
-          >
-            Nuevo Producto
-          </Button>
+
         </Box>
       </Box>
 
@@ -579,7 +536,6 @@ const InventarioPage = () => {
                                             id: pr.id,
                                             nombre: pr.nombre,
                                             codigo_barras: pr.codigo_barras || '',
-                                            sku: pr.sku || '',
                                             unidad_medida_id: catalogos.unidades.find(u => u.abreviatura === pr.unidad)?.id || '',
                                             precio_compra: pr.precio_compra,
                                             precio_venta: pr.precio_venta
@@ -606,129 +562,7 @@ const InventarioPage = () => {
         </TableContainer>
       </Card>
 
-      {/* ---- MODALES ---- */}
 
-      {/* Modal Nuevo Producto */}
-      <Dialog open={modalProducto} onClose={() => setModalProducto(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Nuevo Producto</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '24px !important' }}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, color: 'text.secondary' }}>
-              <Package size={18} /><Typography variant="body2" fontWeight={600}>Nombre del Producto</Typography>
-            </Box>
-            <TextField placeholder="Ej. Chapa Yale 3 Golpes" name="nombre" value={formProducto.nombre} onChange={e => setFormProducto({ ...formProducto, nombre: e.target.value })} fullWidth size="small" />
-          </Box>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, color: 'text.secondary' }}>
-              <Typography variant="body2" fontWeight={600}>Descripción (Opcional)</Typography>
-            </Box>
-            <TextField placeholder="Descripción técnica del producto" name="descripcion" value={formProducto.descripcion} onChange={e => setFormProducto({ ...formProducto, descripcion: e.target.value })} fullWidth size="small" multiline rows={2} />
-          </Box>
-          <Box>
-            <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Imagen (Opcional)</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-              <Button variant="outlined" component="label" size="small" sx={{ textTransform: 'none' }}>
-                Galería
-                <input type="file" hidden accept="image/*" onChange={handleImageChange} />
-              </Button>
-              <Button variant="outlined" component="label" size="small" sx={{ textTransform: 'none' }}>
-                Cámara
-                <input type="file" hidden accept="image/*" capture="environment" onChange={handleImageChange} />
-              </Button>
-              {preview && (
-                <img src={preview} alt="Vista previa" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
-              )}
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Categoría</Typography>
-              <FormControl fullWidth size="small">
-                <Select value={formProducto.categoria_id} onChange={e => setFormProducto({ ...formProducto, categoria_id: e.target.value })} displayEmpty>
-                  <MenuItem value=""><em>Sin categoría</em></MenuItem>
-                  {catalogos.categorias.map(c => <MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>)}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Marca</Typography>
-              <FormControl fullWidth size="small">
-                <Select value={formProducto.marca_id} onChange={e => setFormProducto({ ...formProducto, marca_id: e.target.value })} displayEmpty>
-                  <MenuItem value=""><em>Sin marca</em></MenuItem>
-                  {catalogos.marcas.map(m => <MenuItem key={m.id} value={m.id}>{m.nombre}</MenuItem>)}
-                </Select>
-              </FormControl>
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setModalProducto(false)} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
-          <Button onClick={handleGuardarProducto} variant="contained" sx={{ textTransform: 'none' }}>Guardar Producto</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Modal Nueva Presentación */}
-      <Dialog open={modalPresentacion} onClose={() => setModalPresentacion(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Nueva Presentación</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '24px !important' }}>
-          <Box>
-            <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Producto</Typography>
-            <FormControl fullWidth size="small">
-              <Select value={formPresentacion.producto_id} onChange={e => setFormPresentacion({ ...formPresentacion, producto_id: e.target.value })} displayEmpty>
-                <MenuItem value=""><em>Selecciona un producto</em></MenuItem>
-                {productos.map(p => <MenuItem key={p.id} value={p.id}>{p.nombre}</MenuItem>)}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Nombre de la Presentación</Typography>
-              <TextField placeholder="Ej. 1 kg / KIT 20 kg" value={formPresentacion.nombre} onChange={e => setFormPresentacion({ ...formPresentacion, nombre: e.target.value })} fullWidth size="small" />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Unidad de Medida</Typography>
-              <FormControl fullWidth size="small">
-                <Select value={formPresentacion.unidad_medida_id} onChange={e => setFormPresentacion({ ...formPresentacion, unidad_medida_id: e.target.value })} displayEmpty>
-                  <MenuItem value=""><em>Selecciona</em></MenuItem>
-                  {catalogos.unidades.map(u => <MenuItem key={u.id} value={u.id}>{u.nombre}</MenuItem>)}
-                </Select>
-              </FormControl>
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Código de Barras / QR</Typography>
-              <TextField placeholder="Escanea o escribe" value={formPresentacion.codigo_barras} onChange={e => setFormPresentacion({ ...formPresentacion, codigo_barras: e.target.value })} fullWidth size="small" slotProps={{ input: { startAdornment: <InputAdornment position="start"><Barcode size={16} color="#9ca3af" /></InputAdornment> } }} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>SKU Interno</Typography>
-              <TextField placeholder="Opcional" value={formPresentacion.sku} onChange={e => setFormPresentacion({ ...formPresentacion, sku: e.target.value })} fullWidth size="small" />
-            </Box>
-          </Box>
-          <Divider />
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Precio de Compra (Bs.)</Typography>
-              <TextField type="number" placeholder="0.00" value={formPresentacion.precio_compra} onChange={e => setFormPresentacion({ ...formPresentacion, precio_compra: e.target.value })} fullWidth size="small" />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Precio de Venta (Bs.)</Typography>
-              <TextField type="number" placeholder="0.00" value={formPresentacion.precio_venta} onChange={e => setFormPresentacion({ ...formPresentacion, precio_venta: e.target.value })} fullWidth size="small" />
-            </Box>
-          </Box>
-          {formPresentacion.precio_compra && formPresentacion.precio_venta && parseFloat(formPresentacion.precio_venta) > 0 && (
-            <Box sx={{ p: 2, borderRadius: 1, backgroundColor: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
-              <Typography variant="body2" color="#10b981" fontWeight={600}>
-                📈 Margen de ganancia: {(((formPresentacion.precio_venta - formPresentacion.precio_compra) / formPresentacion.precio_venta) * 100).toFixed(1)}%
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setModalPresentacion(false)} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
-          <Button onClick={handleGuardarPresentacion} variant="contained" sx={{ textTransform: 'none' }}>Guardar Presentación</Button>
-        </DialogActions>
-      </Dialog>
 
       {/* Modal Editar Presentación */}
       <Dialog open={modalEditarPresentacion} onClose={() => setModalEditarPresentacion(false)} maxWidth="sm" fullWidth>
@@ -749,15 +583,9 @@ const InventarioPage = () => {
               </FormControl>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Código de Barras / QR</Typography>
-              <TextField placeholder="Escanea o escribe" value={formEditarPresentacion.codigo_barras} onChange={e => setFormEditarPresentacion({ ...formEditarPresentacion, codigo_barras: e.target.value })} fullWidth size="small" slotProps={{ input: { startAdornment: <InputAdornment position="start"><Barcode size={16} color="#9ca3af" /></InputAdornment> } }} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>SKU Interno</Typography>
-              <TextField placeholder="Opcional" value={formEditarPresentacion.sku} onChange={e => setFormEditarPresentacion({ ...formEditarPresentacion, sku: e.target.value })} fullWidth size="small" />
-            </Box>
+          <Box>
+            <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Código de Barras / QR</Typography>
+            <TextField placeholder="Escanea o escribe" value={formEditarPresentacion.codigo_barras} onChange={e => setFormEditarPresentacion({ ...formEditarPresentacion, codigo_barras: e.target.value })} fullWidth size="small" slotProps={{ input: { startAdornment: <InputAdornment position="start"><Barcode size={16} color="#9ca3af" /></InputAdornment> } }} />
           </Box>
           <Divider />
           <Box sx={{ display: 'flex', gap: 2 }}>
