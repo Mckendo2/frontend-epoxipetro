@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Card, CardContent, Typography, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, IconButton, Button, Grid,
@@ -362,17 +362,20 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                       renderInput={(params) => (
                         <TextField {...params}
                           placeholder="Escribe para buscar..."
-                          slotProps={{
-                            input: {
-                              ...params.InputProps,
-                              startAdornment: <><Search size={14} color="#9ca3af" style={{ marginRight: 4 }} />{params.InputProps.startAdornment}</>,
-                              endAdornment: (
-                                <>
-                                  {cargandoMap[item._key] ? <CircularProgress size={14} /> : null}
-                                  {params.InputProps.endAdornment}
-                                </>
-                              )
-                            }
+                          InputProps={{
+                            ...params.InputProps,
+                            startAdornment: (
+                              <>
+                                <Search size={14} color="#9ca3af" style={{ marginRight: 4 }} />
+                                {params.InputProps?.startAdornment}
+                              </>
+                            ),
+                            endAdornment: (
+                              <>
+                                {cargandoMap[item._key] ? <CircularProgress size={14} /> : null}
+                                {params.InputProps?.endAdornment}
+                              </>
+                            )
                           }}
                         />
                       )}
