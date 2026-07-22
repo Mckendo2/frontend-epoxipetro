@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Card, CardContent, Typography, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, IconButton, Button, Grid,
@@ -119,10 +119,13 @@ const itemVacio = () => ({
   label: '',
   nombre: '',
   categoria_id: '',
+  marca_id: '',
   codigo_barras: '',
+  cantidad_minima: '',
   precio_compra: '',
   precio_venta: '',
   cantidad: '',
+  nota: '',
 });
 
 const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) => {
@@ -411,12 +414,36 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                     </Box>
                     <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
                       <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        Marca
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <Select value={item.marca_id}
+                          onChange={e => actualizarItem(item._key, 'marca_id', e.target.value)}
+                          displayEmpty>
+                          <MenuItem value=""><em>Sin marca</em></MenuItem>
+                          {(catalogos?.marcas || []).map(m =>
+                            <MenuItem key={m.id} value={m.id}>{m.nombre}</MenuItem>
+                          )}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                    <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
+                      <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                         Código de Barra
                       </Typography>
                       <TextField fullWidth size="small" placeholder="Opcional"
                         value={item.codigo_barras}
                         onChange={e => actualizarItem(item._key, 'codigo_barras', e.target.value)}
                         slotProps={{ input: { startAdornment: <Barcode size={14} color="#9ca3af" style={{ marginRight: 4 }} /> } }}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '1 1 100px', minWidth: 90 }}>
+                      <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        Stock Mín.
+                      </Typography>
+                      <TextField fullWidth size="small" type="number" placeholder="0"
+                        value={item.cantidad_minima}
+                        onChange={e => actualizarItem(item._key, 'cantidad_minima', e.target.value)}
                       />
                     </Box>
                   </>
@@ -452,6 +479,24 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                     slotProps={{ input: { startAdornment: <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>Bs.</Typography> } }}
                   />
                 </Box>
+                {(() => {
+                  const pComp = parseFloat(item.precio_compra) || 0;
+                  const pVent = parseFloat(item.precio_venta) || 0;
+                  const ganancia = pVent - pComp;
+                  const margen = pComp > 0 ? ((ganancia / pComp) * 100).toFixed(1) : 0;
+                  return (
+                    <Box sx={{ flex: '0 0 70px', minWidth: 70 }}>
+                      <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        Margen
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', height: '40px' }}>
+                        <Typography variant="body2" fontWeight={700} color={ganancia > 0 ? '#10b981' : ganancia < 0 ? '#ef4444' : 'text.secondary'}>
+                          {ganancia > 0 ? '+' : ''}{margen}%
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                })()}
 
                 {/* Subtotal */}
                 {item.precio_compra && item.cantidad ? (
@@ -462,6 +507,14 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                     </Typography>
                   </Box>
                 ) : null}
+                
+                {/* Nota del ítem */}
+                <Box sx={{ flex: '1 1 100%', mt: 1 }}>
+                  <TextField fullWidth size="small" placeholder="Nota del ítem (ej. caja golpeada, defecto)..."
+                    value={item.nota || ''}
+                    onChange={e => actualizarItem(item._key, 'nota', e.target.value)}
+                  />
+                </Box>
               </Box>
             </Box>
           ))}
