@@ -10,8 +10,9 @@ import {
 import {
   Truck, Plus, Search, Edit2, DollarSign, AlertCircle,
   CheckCircle, Clock, Building2, Phone, Mail, MapPin,
+  CheckCircle, Clock, Building2, Phone, Mail, MapPin,
   CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet,
-  ShoppingCart, Package, Barcode, Trash2, Tag
+  ShoppingCart, Package, Barcode, Trash2, Tag, Undo2
 } from 'lucide-react';
 
 const API_INV = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
@@ -627,6 +628,168 @@ const ModalPago = ({ open, onClose, onSuccess, compra }) => {
 
 // ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
 
+// ─── MODAL DEVOLUCION COMPRA ───────────────────────────────────────────────
+
+const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
+  const itemVacio = () => ({ _key: Date.now().toString() + Math.random(), presentacion_id: '', nombreProd: '', cantidad: '', precio_compra: '', nota: '' });
+  const [items, setItems] = useState([itemVacio()]);
+  const [loading, setLoading] = useState(false);
+  
+  const [busquedaMap, setBusquedaMap] = useState({});
+  const [opcionesMap, setOpcionesMap] = useState({});
+  const [cargandoMap, setCargandoMap] = useState({});
+  const timerRef = useRef({});
+
+  useEffect(() => {
+    if (open) {
+      setItems([itemVacio()]);
+      setBusquedaMap({});
+      setOpcionesMap({});
+      setCargandoMap({});
+    }
+  }, [open]);
+
+  const handleBuscarProducto = async (texto, key) => {
+    setBusquedaMap(prev => ({ ...prev, [key]: texto }));
+    if (timerRef.current[key]) clearTimeout(timerRef.current[key]);
+    if (!texto.trim()) {
+      setOpcionesMap(prev => ({ ...prev, [key]: [] }));
+      return;
+    }
+    timerRef.current[key] = setTimeout(async () => {
+      setCargandoMap(prev => ({ ...prev, [key]: true }));
+      try {
+        const res = await fetch(`${API_INV}/presentaciones/buscar?q=${texto}`);
+        const data = await res.json();
+        setOpcionesMap(prev => ({ ...prev, [key]: data }));
+      } catch {
+        setOpcionesMap(prev => ({ ...prev, [key]: [] }));
+      } finally {
+        setCargandoMap(prev => ({ ...prev, [key]: false }));
+      }
+    }, 400);
+  };
+
+  const handleItemChange = (key, field, value) => {
+    setItems(items.map(it => it._key === key ? { ...it, [field]: value } : it));
+  };
+
+  const removeItem = (key) => {
+    if (items.length > 1) setItems(items.filter(it => it._key !== key));
+  };
+
+  const totalDevolucion = items.reduce((sum, it) => sum + (parseFloat(it.cantidad) || 0) * (parseFloat(it.precio_compra) || 0), 0);
+
+  const handleSubmit = async () => {
+    const validItems = items.filter(it => it.presentacion_id && parseFloat(it.cantidad) > 0);
+    if (!validItems.length) return;
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/${compra.id}/devolucion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ items: validItems })
+      });
+      if (res.ok) {
+        onSuccess('Devolución registrada exitosamente');
+        onClose();
+      } else {
+        const err = await res.json();
+        alert(err.mensaje);
+      }
+    } catch {
+      alert('Error de conexión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Devolución de Compra {compra?.descripcion}</DialogTitle>
+      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Typography variant="body2" color="text.secondary">
+          Busca los productos que deseas devolver. La cantidad seleccionada se descontará automáticamente de tu Almacén y el monto se restará del total de la compra.
+        </Typography>
+
+        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+          <Table size="small">
+            <TableHead sx={{ backgroundColor: 'action.hover' }}>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>Producto a Devolver</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 100 }}>Cant.</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 140 }}>Precio Costo (Bs)</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Nota</TableCell>
+                <TableCell sx={{ width: 50 }}></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {items.map((it) => (
+                <TableRow key={it._key}>
+                  <TableCell>
+                    <Autocomplete
+                      freeSolo
+                      options={opcionesMap[it._key] || []}
+                      getOptionLabel={(option) => typeof option === 'string' ? option : `${option.producto} - ${option.nombre} (${option.codigo_barras || 'S/C'})`}
+                      loading={cargandoMap[it._key]}
+                      onInputChange={(e, val) => handleBuscarProducto(val, it._key)}
+                      onChange={(e, val) => {
+                        if (val && typeof val === 'object') {
+                          handleItemChange(it._key, 'presentacion_id', val.id);
+                          handleItemChange(it._key, 'nombreProd', val.producto);
+                          handleItemChange(it._key, 'precio_compra', val.precio_compra);
+                        } else {
+                          handleItemChange(it._key, 'presentacion_id', '');
+                        }
+                      }}
+                      renderInput={(params) => (
+                        <TextField {...params} placeholder="Buscar producto..." size="small"
+                          slotProps={{
+                            input: {
+                              ...params.InputProps,
+                              endAdornment: (
+                                <React.Fragment>
+                                  {cargandoMap[it._key] ? <CircularProgress color="inherit" size={16} /> : null}
+                                  {params.InputProps.endAdornment}
+                                </React.Fragment>
+                              ),
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </TableCell>
+                  <TableCell><TextField type="number" size="small" value={it.cantidad} onChange={e => handleItemChange(it._key, 'cantidad', e.target.value)} /></TableCell>
+                  <TableCell><TextField type="number" size="small" value={it.precio_compra} onChange={e => handleItemChange(it._key, 'precio_compra', e.target.value)} /></TableCell>
+                  <TableCell><TextField placeholder="Motivo" size="small" value={it.nota} onChange={e => handleItemChange(it._key, 'nota', e.target.value)} /></TableCell>
+                  <TableCell>
+                    <IconButton size="small" color="error" onClick={() => removeItem(it._key)}><Trash2 size={16} /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Box sx={{ p: 1, backgroundColor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
+            <Button size="small" startIcon={<Plus size={16} />} onClick={() => setItems([...items, itemVacio()])} sx={{ textTransform: 'none' }}>Agregar Producto</Button>
+          </Box>
+        </Box>
+        
+        <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(239, 68, 68, 0.08)', display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="body1" fontWeight={600} color="error">Total a descontar de la compra:</Typography>
+          <Typography variant="h6" fontWeight={700} color="error">Bs. {formatMonto(totalDevolucion)}</Typography>
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
+        <Button onClick={handleSubmit} disabled={loading || totalDevolucion <= 0} variant="contained" color="error" sx={{ textTransform: 'none' }}>
+          {loading ? 'Procesando...' : 'Confirmar Devolución'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const ProveedoresPage = () => {
   const [tab, setTab] = useState(0);
   const [kpis, setKpis] = useState({ deuda_total: 0, compras_pendientes: 0, proveedores_activos: 0 });
@@ -643,6 +806,7 @@ const ProveedoresPage = () => {
   const [proveedorEdit, setProveedorEdit] = useState(null);
   const [modalOrden, setModalOrden] = useState(false);
   const [modalPago, setModalPago] = useState(false);
+  const [modalDevolucion, setModalDevolucion] = useState(false);
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
 
   const notify = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
@@ -832,12 +996,18 @@ const ProveedoresPage = () => {
                       </TableCell>
                       <TableCell>
                         {c.estado_pago !== 'pagado' && (
-                          <Tooltip title="Registrar pago">
-                            <IconButton size="small" sx={{ color: '#10b981', '&:hover': { bgcolor: 'rgba(16,185,129,0.1)' } }}
-                              onClick={() => { setCompraSeleccionada(c); setModalPago(true); }}>
-                              <DollarSign size={18} />
-                            </IconButton>
-                          </Tooltip>
+                          <>
+                            <Tooltip title="Registrar Pago">
+                              <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalPago(true); }} sx={{ color: '#10b981' }}>
+                                <DollarSign size={18} />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Devolución">
+                              <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalDevolucion(true); }} sx={{ color: '#f59e0b' }}>
+                                <Undo2 size={18} />
+                              </IconButton>
+                            </Tooltip>
+                          </>
                         )}
                       </TableCell>
                     </TableRow>
@@ -957,6 +1127,8 @@ const ProveedoresPage = () => {
         onSuccess={onSuccessOrden} proveedores={proveedores} catalogos={catalogos} />
       <ModalPago open={modalPago} onClose={() => { setModalPago(false); setCompraSeleccionada(null); }}
         onSuccess={onSuccessPago} compra={compraSeleccionada} />
+      <ModalDevolucionCompra open={modalDevolucion} onClose={() => { setModalDevolucion(false); setCompraSeleccionada(null); }}
+        onSuccess={(msg) => { notify(msg); fetchAll(); }} compra={compraSeleccionada} />
 
       <Snackbar open={snackbar.open} autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}

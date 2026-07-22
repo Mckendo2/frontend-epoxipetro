@@ -550,6 +550,60 @@ const InventarioPage = () => {
 
 
 
+      {/* Modal Crear/Editar Producto */}
+      <Dialog open={modalProducto} onClose={() => setModalProducto(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{formProducto.id ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '24px !important' }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Nombre del Producto *</Typography>
+              <TextField placeholder="Ej. Lija al Agua 240" value={formProducto.nombre} onChange={e => setFormProducto({ ...formProducto, nombre: e.target.value })} fullWidth size="small" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Categoría</Typography>
+              <FormControl fullWidth size="small">
+                <Select value={formProducto.categoria_id} onChange={e => setFormProducto({ ...formProducto, categoria_id: e.target.value })} displayEmpty>
+                  <MenuItem value=""><em>Ninguna</em></MenuItem>
+                  {(catalogos?.categorias || []).map(c => <MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>)}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Marca</Typography>
+              <FormControl fullWidth size="small">
+                <Select value={formProducto.marca_id} onChange={e => setFormProducto({ ...formProducto, marca_id: e.target.value })} displayEmpty>
+                  <MenuItem value=""><em>Ninguna</em></MenuItem>
+                  {(catalogos?.marcas || []).map(m => <MenuItem key={m.id} value={m.id}>{m.nombre}</MenuItem>)}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Descripción (Opcional)</Typography>
+              <TextField placeholder="Detalles del producto" value={formProducto.descripcion} onChange={e => setFormProducto({ ...formProducto, descripcion: e.target.value })} fullWidth size="small" />
+            </Box>
+          </Box>
+          <Divider />
+          <Box>
+            <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Imagen del Producto</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ width: 80, height: 80, borderRadius: 2, border: '1px dashed', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {preview ? <img src={preview} alt="Vista previa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Typography variant="caption" color="text.secondary">Sin img</Typography>}
+              </Box>
+              <Button variant="outlined" component="label" size="small" sx={{ textTransform: 'none' }}>
+                Subir Imagen
+                <input type="file" hidden accept="image/*" onChange={handleImageChange} />
+              </Button>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setModalProducto(false)} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
+          <Button onClick={handleGuardarProducto} variant="contained" sx={{ textTransform: 'none' }}>{formProducto.id ? 'Actualizar Producto' : 'Crear Producto'}</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Modal Editar Presentación */}
       <Dialog open={modalEditarPresentacion} onClose={() => setModalEditarPresentacion(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Editar Presentación</DialogTitle>
