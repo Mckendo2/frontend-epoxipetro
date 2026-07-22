@@ -10,7 +10,6 @@ import {
 import {
   Truck, Plus, Search, Edit2, DollarSign, AlertCircle,
   CheckCircle, Clock, Building2, Phone, Mail, MapPin,
-  CheckCircle, Clock, Building2, Phone, Mail, MapPin,
   CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet,
   ShoppingCart, Package, Barcode, Trash2, Tag, Undo2
 } from 'lucide-react';
