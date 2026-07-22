@@ -744,16 +744,14 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
                       }}
                       renderInput={(params) => (
                         <TextField {...params} placeholder="Buscar producto..." size="small"
-                          slotProps={{
-                            input: {
-                              ...params.InputProps,
-                              endAdornment: (
-                                <React.Fragment>
-                                  {cargandoMap[it._key] ? <CircularProgress color="inherit" size={16} /> : null}
-                                  {params.InputProps.endAdornment}
-                                </React.Fragment>
-                              ),
-                            },
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <React.Fragment>
+                                {cargandoMap[it._key] ? <CircularProgress color="inherit" size={16} /> : null}
+                                {params.InputProps?.endAdornment}
+                              </React.Fragment>
+                            ),
                           }}
                         />
                       )}
@@ -994,20 +992,20 @@ const ProveedoresPage = () => {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        {c.estado_pago !== 'pagado' && (
-                          <>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          {c.estado_pago !== 'pagado' && (
                             <Tooltip title="Registrar Pago">
                               <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalPago(true); }} sx={{ color: '#10b981' }}>
                                 <DollarSign size={18} />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Devolución">
-                              <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalDevolucion(true); }} sx={{ color: '#f59e0b' }}>
-                                <Undo2 size={18} />
-                              </IconButton>
-                            </Tooltip>
-                          </>
-                        )}
+                          )}
+                          <Tooltip title="Devolución de Compra">
+                            <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalDevolucion(true); }} sx={{ color: '#f59e0b' }}>
+                              <Undo2 size={18} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
