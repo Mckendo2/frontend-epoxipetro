@@ -641,12 +641,50 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
 
   useEffect(() => {
     if (open) {
-      setItems([itemVacio()]);
+      setItems([]);
       setBusquedaMap({});
       setOpcionesMap({});
       setCargandoMap({});
+
+      if (compra?.id) {
+        setLoading(true);
+        fetch(`${API}/compras/${compra.id}/items`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.length > 0) {
+              const loaded = [];
+              const initOpciones = {};
+              data.forEach(it => {
+                const _key = Date.now().toString() + Math.random();
+                loaded.push({
+                  _key,
+                  presentacion_id: it.presentacion_id,
+                  nombreProd: it.producto_nombre,
+                  cantidad: it.cantidad,
+                  precio_compra: it.precio_compra,
+                  nota: ''
+                });
+                initOpciones[_key] = [{
+                  id: it.presentacion_id,
+                  producto: it.producto_nombre,
+                  nombre: it.presentacion_nombre,
+                  codigo_barras: it.codigo_barras,
+                  precio_compra: it.precio_compra
+                }];
+              });
+              setOpcionesMap(initOpciones);
+              setItems(loaded);
+            } else {
+              setItems([itemVacio()]);
+            }
+          })
+          .catch(() => setItems([itemVacio()]))
+          .finally(() => setLoading(false));
+      } else {
+        setItems([itemVacio()]);
+      }
     }
-  }, [open]);
+  }, [open, compra]);
 
   const handleBuscarProducto = async (texto, key) => {
     setBusquedaMap(prev => ({ ...prev, [key]: texto }));
@@ -730,6 +768,7 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
                     <Autocomplete
                       freeSolo
                       options={opcionesMap[it._key] || []}
+                      value={opcionesMap[it._key]?.[0] || ''}
                       getOptionLabel={(option) => typeof option === 'string' ? option : `${option.producto} - ${option.nombre} (${option.codigo_barras || 'S/C'})`}
                       loading={cargandoMap[it._key]}
                       onInputChange={(e, val) => handleBuscarProducto(val, it._key)}
