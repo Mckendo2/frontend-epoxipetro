@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppBar, Avatar, Box, IconButton, Toolbar, Typography, Badge, useTheme, Menu, MenuItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { Menu as MenuIcon, Bell, AlignLeft, Sun, Moon, User, Shield, LogOut, ChevronDown } from 'lucide-react';
 import { useColorMode } from '../../context/ThemeContext';
@@ -15,6 +15,34 @@ const Header = ({ onMobileMenuClick, onDesktopMenuClick, drawerWidth, isDesktop,
 
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
+
+  const [alertas, setAlertas] = useState([]);
+  const [alertasAnchorEl, setAlertasAnchorEl] = useState(null);
+  const alertasOpen = Boolean(alertasAnchorEl);
+
+  const handleAlertasOpen = (e) => setAlertasAnchorEl(e.currentTarget);
+  const handleAlertasClose = () => setAlertasAnchorEl(null);
+
+  useEffect(() => {
+    const fetchAlertas = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const res = await fetch(`${API_URL}/api/inventario/alertas`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAlertas(data);
+        }
+      } catch (error) {
+        console.error('Error fetching alertas:', error);
+      }
+    };
+    fetchAlertas();
+    const interval = setInterval(fetchAlertas, 60000); // Polling every minute
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     handleMenuClose();
@@ -71,11 +99,70 @@ const Header = ({ onMobileMenuClick, onDesktopMenuClick, drawerWidth, isDesktop,
             {mode === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </IconButton>
 
-          <IconButton sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
-            <Badge badgeContent={2} color="primary" sx={{ '& .MuiBadge-badge': { backgroundColor: '#6366f1', color: 'white' } }}>
+          <IconButton onClick={handleAlertasOpen} sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+            <Badge badgeContent={alertas.length} color="error" sx={{ '& .MuiBadge-badge': { backgroundColor: alertas.length > 0 ? '#ef4444' : '#9ca3af', color: 'white' } }}>
               <Bell size={20} />
             </Badge>
           </IconButton>
+
+          <Menu
+            anchorEl={alertasAnchorEl}
+            open={alertasOpen}
+            onClose={handleAlertasClose}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 1.5,
+                  minWidth: 280,
+                  maxWidth: 320,
+                  maxHeight: 400,
+                  borderRadius: 3,
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 12px 30px -10px rgba(0,0,0,0.8)'
+                    : '0 12px 30px -10px rgba(0,0,0,0.15)',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  p: 1,
+                  overflowY: 'auto'
+                }
+              }
+            }}
+          >
+            <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', mb: 1 }}>
+              <Typography variant="subtitle2" fontWeight={700}>
+                Alertas de Stock ({alertas.length})
+              </Typography>
+            </Box>
+            
+            {alertas.length === 0 ? (
+              <Box sx={{ px: 2, py: 3, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  El stock está en niveles adecuados.
+                </Typography>
+              </Box>
+            ) : (
+              alertas.map((al, index) => (
+                <MenuItem key={index} onClick={() => { handleAlertasClose(); navigate('/inventario'); }} sx={{ borderRadius: 1.5, mb: 0.5, py: 1.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', whiteSpace: 'normal' }}>
+                  <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.2, mb: 0.5 }}>
+                    {al.producto_nombre}
+                  </Typography>
+                  <Typography variant="caption" sx={{ lineHeight: 1.2, mb: 0.5, color: 'text.secondary' }}>
+                    {al.presentacion_nombre}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 700 }}>
+                      Stock actual: {al.stock_actual}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      (Mín: {al.stock_minimo})
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))
+            )}
+          </Menu>
 
           {/* ─── Botón de usuario con menú ─── */}
           <Box
