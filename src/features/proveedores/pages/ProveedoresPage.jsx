@@ -647,7 +647,23 @@ const ModalPago = ({ open, onClose, onSuccess, compra }) => {
 // ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
 
 // ─── MODAL DEVOLUCION COMPRA ───────────────────────────────────────────────
-
+const ModalDetallesCompra = ({ open, onClose, compra }) => {
+  if (!compra) return null;
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ fontWeight: 700 }}>Detalles del Pedido #{compra.id}</DialogTitle>
+      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Typography variant="body2" fontWeight={700}>Nota / Observación:</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap', bgcolor: '#f9fafb', p: 2, borderRadius: 1, border: '1px solid #e5e7eb' }}>
+          {compra.nota || 'Sin nota registrada.'}
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} sx={{ color: 'text.secondary' }}>Cerrar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 
 const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
@@ -864,6 +880,7 @@ const ProveedoresPage = () => {
   const [modalOrden, setModalOrden] = useState(false);
   const [modalPago, setModalPago] = useState(false);
   const [modalDevolucion, setModalDevolucion] = useState(false);
+  const [modalDetalles, setModalDetalles] = useState(false);
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
 
   const notify = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
@@ -898,7 +915,7 @@ const ProveedoresPage = () => {
 
   const comprasFiltradas = compras.filter(c =>
     c.proveedor?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    c.descripcion?.toLowerCase().includes(busqueda.toLowerCase())
+    `Pedido #${c.id}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const kpiCards = [
@@ -1032,7 +1049,7 @@ const ProveedoresPage = () => {
                         <Typography variant="body2" fontWeight={600} color="text.primary">{c.proveedor}</Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200 }}>{c.descripcion}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200 }}>Pedido #{c.id}</Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight={600}>Bs. {formatMonto(c.monto)}</Typography>
@@ -1053,6 +1070,11 @@ const ProveedoresPage = () => {
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Tooltip title="Ver Detalles de la Compra / Nota">
+                            <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalDetalles(true); }} sx={{ color: '#3b82f6' }}>
+                              <Eye size={18} />
+                            </IconButton>
+                          </Tooltip>
 
                           {c.estado_pago !== 'pagado' && (
                             <Tooltip title="Registrar Pago">
@@ -1189,6 +1211,8 @@ const ProveedoresPage = () => {
         onSuccess={(msg) => { notify(msg); fetchAll(); }} compra={compraSeleccionada} />
 
 
+
+      <ModalDetallesCompra open={modalDetalles} onClose={() => setModalDetalles(false)} compra={compraSeleccionada} />
 
       <Snackbar open={snackbar.open} autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
