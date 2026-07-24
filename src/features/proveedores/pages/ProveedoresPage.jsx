@@ -11,7 +11,7 @@ import {
   Truck, Plus, Search, Edit2, DollarSign, AlertCircle,
   CheckCircle, Clock, Building2, Phone, Mail, MapPin,
   CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet,
-  ShoppingCart, Package, Barcode, Trash2, Tag, Undo2
+  ShoppingCart, Package, Barcode, Trash2, Tag, Undo2, Eye
 } from 'lucide-react';
 
 const API_INV = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
@@ -134,6 +134,7 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
     tipo_pago: 'credito',
     fecha_vencimiento: '',
     nota: '',
+    imagen: null,
   });
   const [items, setItems]     = useState([itemVacio()]);
   const [loading, setLoading] = useState(false);
@@ -203,7 +204,10 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
     setLoading(true);
     try {
       const payload = {
-        ...form,
+        proveedor_id: form.proveedor_id,
+        tipo_pago: form.tipo_pago,
+        fecha_vencimiento: form.fecha_vencimiento,
+        nota: form.nota,
         items: itemsValidos.map(it => ({
           presentacion_id: it.modo === 'buscar' ? it.presentacion_id : null,
           nombre: it.nombre,
@@ -216,10 +220,19 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
           cantidad: parseFloat(it.cantidad),
         }))
       };
+
+      const formData = new FormData();
+      formData.append('datos', JSON.stringify(payload));
+      
+      itemsValidos.forEach((it, idx) => {
+        if (it.modo === 'nuevo' && it.imagen_file) {
+          formData.append(`imagen_item_${idx}`, it.imagen_file);
+        }
+      });
+
       const res = await fetch(`${API}/compras`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData
       });
       if (res.ok) { onSuccess(); onClose(); }
       else {
@@ -291,7 +304,8 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
             <Typography variant="body2" fontWeight={700} color="text.secondary" sx={{ mb: 0.8 }}>
               Nota (opcional)
             </Typography>
-            <TextField fullWidth size="small" placeholder="Observación..."
+            <TextField fullWidth size="small" placeholder="Observación de la compra o nota sobre ítems..."
+              multiline rows={2}
               value={form.nota} onChange={e => setForm(f => ({ ...f, nota: e.target.value }))} />
           </Box>
         </Box>
@@ -429,6 +443,17 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                         </Select>
                       </FormControl>
                     </Box>
+                    <Box sx={{ flex: '1 1 180px', minWidth: 160 }}>
+                      <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        Foto del producto (opcional)
+                      </Typography>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={e => actualizarItem(item._key, 'imagen_file', e.target.files[0])}
+                        style={{ display: 'block', width: '100%', padding: '4px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                      />
+                    </Box>
                     <Box sx={{ flex: '1 1 140px', minWidth: 120 }}>
                       <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                         Código de Barra
@@ -509,14 +534,6 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                     </Typography>
                   </Box>
                 ) : null}
-                
-                {/* Nota del ítem */}
-                <Box sx={{ flex: '1 1 100%', mt: 1 }}>
-                  <TextField fullWidth size="small" placeholder="Nota del ítem (ej. caja golpeada, defecto)..."
-                    value={item.nota || ''}
-                    onChange={e => actualizarItem(item._key, 'nota', e.target.value)}
-                  />
-                </Box>
               </Box>
             </Box>
           ))}
@@ -630,6 +647,8 @@ const ModalPago = ({ open, onClose, onSuccess, compra }) => {
 // ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
 
 // ─── MODAL DEVOLUCION COMPRA ───────────────────────────────────────────────
+
+
 
 const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
   const itemVacio = () => ({ _key: Date.now().toString() + Math.random(), presentacion_id: '', nombreProd: '', cantidad: '', precio_compra: '', nota: '' });
@@ -1034,6 +1053,7 @@ const ProveedoresPage = () => {
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+
                           {c.estado_pago !== 'pagado' && (
                             <Tooltip title="Registrar Pago">
                               <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalPago(true); }} sx={{ color: '#10b981' }}>
@@ -1167,6 +1187,8 @@ const ProveedoresPage = () => {
         onSuccess={onSuccessPago} compra={compraSeleccionada} />
       <ModalDevolucionCompra open={modalDevolucion} onClose={() => { setModalDevolucion(false); setCompraSeleccionada(null); }}
         onSuccess={(msg) => { notify(msg); fetchAll(); }} compra={compraSeleccionada} />
+
+
 
       <Snackbar open={snackbar.open} autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
