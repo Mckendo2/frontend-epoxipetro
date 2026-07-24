@@ -145,18 +145,26 @@ const Header = ({ onMobileMenuClick, onDesktopMenuClick, drawerWidth, isDesktop,
             ) : (
               alertas.map((al, index) => (
                 <MenuItem key={index} onClick={() => { handleAlertasClose(); navigate(`/almacen?buscar=${encodeURIComponent(al.producto_nombre)}`); }} sx={{ borderRadius: 1.5, mb: 0.5, py: 1.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', whiteSpace: 'normal' }}>
-                  <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.2, mb: 0.5 }}>
-                    {al.producto_nombre}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.4, width: '100%' }}>
+                    <Typography variant="body2" fontWeight={700} sx={{ lineHeight: 1.2, flex: 1 }}>
+                      {al.producto_nombre}
+                    </Typography>
+                    <Box sx={{ px: 1, py: 0.2, borderRadius: 99, bgcolor: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#3b82f6' }} />
+                      <Typography variant="caption" sx={{ color: '#3b82f6', fontWeight: 700, fontSize: '0.65rem', lineHeight: 1 }}>
+                        Tienda
+                      </Typography>
+                    </Box>
+                  </Box>
                   <Typography variant="caption" sx={{ lineHeight: 1.2, mb: 0.5, color: 'text.secondary' }}>
                     {al.presentacion_nombre}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 700 }}>
-                      Stock actual: {al.stock_actual}
+                      Stock: {Number(al.stock_actual).toFixed(0)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      (Mín: {al.stock_minimo})
+                      · Mín. requerido: {Number(al.stock_minimo).toFixed(0)}
                     </Typography>
                   </Box>
                 </MenuItem>
