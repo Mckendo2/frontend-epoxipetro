@@ -28,6 +28,8 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
         <Typography variant="h5" sx={{ fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '1px' }}>
           FERRETERÍA ALVAREZ
         </Typography>
+        <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>La Paz, El Alto</Typography>
+        <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>Cel: +591 65555942</Typography>
       </Box>
 
       <Divider sx={{ borderStyle: 'dashed', my: 1, borderColor: '#000' }} />
