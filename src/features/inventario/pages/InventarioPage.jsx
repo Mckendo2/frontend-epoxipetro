@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Chip, IconButton, Button, Grid, TextField, MenuItem, Select,
@@ -56,8 +57,16 @@ const InventarioPage = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const fileInputRef = React.useRef();
 
-  // Modals
   const [modalProducto, setModalProducto] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const buscarQuery = params.get('buscar');
+    if (buscarQuery) {
+      setBusqueda(buscarQuery);
+    }
+  }, [location.search]);
   const [modalPresentacion, setModalPresentacion] = useState(false);
   const [modalTraslado, setModalTraslado] = useState(false);
   const [modalEditarPresentacion, setModalEditarPresentacion] = useState(false);

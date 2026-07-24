@@ -144,7 +144,7 @@ const Header = ({ onMobileMenuClick, onDesktopMenuClick, drawerWidth, isDesktop,
               </Box>
             ) : (
               alertas.map((al, index) => (
-                <MenuItem key={index} onClick={() => { handleAlertasClose(); navigate('/inventario'); }} sx={{ borderRadius: 1.5, mb: 0.5, py: 1.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', whiteSpace: 'normal' }}>
+                <MenuItem key={index} onClick={() => { handleAlertasClose(); navigate(`/almacen?buscar=${encodeURIComponent(al.producto_nombre)}`); }} sx={{ borderRadius: 1.5, mb: 0.5, py: 1.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', whiteSpace: 'normal' }}>
                   <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.2, mb: 0.5 }}>
                     {al.producto_nombre}
                   </Typography>
