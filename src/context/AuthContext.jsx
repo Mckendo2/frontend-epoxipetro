@@ -38,6 +38,40 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Temporizador de inactividad (15 minutos = 15 * 60 * 1000 = 900000 ms)
+  const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; 
+
+  useEffect(() => {
+    let inactivityTimer;
+
+    const resetTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      if (token) {
+        inactivityTimer = setTimeout(() => {
+          logout();
+          // Opcionalmente podemos disparar un evento o alerta, pero el estado cambia a null y forzará el login
+        }, INACTIVITY_LIMIT_MS);
+      }
+    };
+
+    // Solo activamos los listeners si hay un usuario logueado
+    if (token) {
+      resetTimer();
+      window.addEventListener('mousemove', resetTimer);
+      window.addEventListener('keydown', resetTimer);
+      window.addEventListener('click', resetTimer);
+      window.addEventListener('scroll', resetTimer);
+    }
+
+    return () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      window.removeEventListener('mousemove', resetTimer);
+      window.removeEventListener('keydown', resetTimer);
+      window.removeEventListener('click', resetTimer);
+      window.removeEventListener('scroll', resetTimer);
+    };
+  }, [token]);
+
   const hasPermission = (codigo) => {
     // Si no hay usuario, falso
     if (!user) return false;
