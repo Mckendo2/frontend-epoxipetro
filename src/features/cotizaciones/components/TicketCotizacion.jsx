@@ -1,82 +1,101 @@
 import React, { forwardRef } from 'react';
-import { Box, Typography, Divider } from '@mui/material';
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
 
+const S = {
+  root: {
+    padding: '6px 8px',
+    width: '100%',
+    backgroundColor: '#fff',
+    color: '#000',
+    fontFamily: "'Courier New', Courier, monospace",
+    fontSize: '11px',
+    lineHeight: '1.3',
+  },
+  center: { textAlign: 'center' },
+  bold: { fontWeight: 'bold' },
+  row: { display: 'flex', justifyContent: 'space-between' },
+  divider: { borderTop: '1px dashed #000', margin: '4px 0' },
+  bigTotal: { fontWeight: 'bold', fontSize: '13px' },
+  small: { fontSize: '10px' },
+  mb2: { marginBottom: '2px' },
+};
+
 const TicketCotizacion = forwardRef(({ data }, ref) => {
   if (!data) return null;
-
   const { cotizacionInfo, cliente, items, total, adelanto, saldo } = data;
 
   return (
-    <Box ref={ref} sx={{ p: 2, fontFamily: 'monospace', color: '#000', width: '300px', margin: '0 auto', fontSize: '12px' }}>
-      {/* Cabecera */}
-      <Box sx={{ textAlign: 'center', mb: 2 }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '16px', textTransform: 'uppercase' }}>
-          FERRETERÍA ALVAREZ
-        </Typography>
-        <Typography sx={{ fontSize: '12px' }}>La Paz, El Alto</Typography>
-        <Typography sx={{ fontSize: '12px' }}>Cel: +591 65555942</Typography>
-        <Typography sx={{ fontSize: '12px' }}>--------------------------------</Typography>
-        <Typography fontWeight="bold" sx={{ fontSize: '14px', mt: 1 }}>COTIZACIÓN / PRE-VENTA</Typography>
-      </Box>
+    <div ref={ref} style={S.root}>
+      <style>{`
+        @media print {
+          @page { size: 80mm auto; margin: 2mm 3mm; }
+          body { margin: 0; }
+          * { -webkit-print-color-adjust: exact; }
+        }
+      `}</style>
 
-      {/* Info General */}
-      <Box sx={{ mb: 2 }}>
-        <Typography sx={{ fontSize: '12px' }}>Nro: {cotizacionInfo?.id}</Typography>
-        <Typography sx={{ fontSize: '12px' }}>Fecha: {new Date(cotizacionInfo?.fecha || Date.now()).toLocaleString('es-BO')}</Typography>
-        <Typography sx={{ fontSize: '12px' }}>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'General'}</Typography>
+      {/* CABECERA */}
+      <div style={{ ...S.center, ...S.mb2 }}>
+        <div style={{ fontWeight: 'bold', fontSize: '13px', letterSpacing: '1px' }}>FERRETERÍA ALVAREZ</div>
+        <div>La Paz, El Alto</div>
+        <div>Cel: +591 65555942</div>
+        <div style={{ ...S.bold, marginTop: '3px' }}>COTIZACIÓN / PRE-VENTA</div>
+      </div>
 
-      </Box>
+      <div style={S.divider} />
 
-      <Typography sx={{ fontSize: '12px' }}>--------------------------------</Typography>
+      {/* INFO */}
+      <div style={S.mb2}>
+        <div>Nro: {cotizacionInfo?.id}</div>
+        <div>Fecha: {new Date(cotizacionInfo?.fecha || Date.now()).toLocaleString('es-BO')}</div>
+        <div>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'General'}</div>
+      </div>
 
-      {/* Detalles */}
-      <Box sx={{ mb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', mb: 1 }}>
-          <Typography sx={{ fontSize: '12px', width: '50%' }}>Cant. x Prod.</Typography>
-          <Typography sx={{ fontSize: '12px', width: '25%', textAlign: 'right' }}>P.U.</Typography>
-          <Typography sx={{ fontSize: '12px', width: '25%', textAlign: 'right' }}>SubT</Typography>
-        </Box>
+      <div style={S.divider} />
 
-        {items?.map((item, index) => (
-          <Box key={index} sx={{ mb: 1 }}>
-            <Typography sx={{ fontSize: '12px', lineHeight: 1.2 }}>{item.producto} {item.nombre !== 'Unidad' ? `- ${item.nombre}` : ''}</Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography sx={{ fontSize: '12px', width: '50%' }}>{item.cantidad}</Typography>
-              <Typography sx={{ fontSize: '12px', width: '25%', textAlign: 'right' }}>{formatMonto(item.precio_venta)}</Typography>
-              <Typography sx={{ fontSize: '12px', width: '25%', textAlign: 'right' }}>{formatMonto(item.cantidad * item.precio_venta)}</Typography>
-            </Box>
-          </Box>
-        ))}
-      </Box>
+      {/* ITEMS HEADER */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '2px' }}>
+        <span style={{ width: '50%' }}>Cant. x Prod.</span>
+        <span style={{ width: '25%', textAlign: 'right' }}>P.U.</span>
+        <span style={{ width: '25%', textAlign: 'right' }}>SubT</span>
+      </div>
 
-      <Typography sx={{ fontSize: '12px' }}>--------------------------------</Typography>
+      {/* ITEMS */}
+      {items?.map((item, index) => (
+        <div key={index} style={{ marginBottom: '3px' }}>
+          <div>{item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}</div>
+          <div style={S.row}>
+            <span style={{ width: '50%' }}>{item.cantidad}</span>
+            <span style={{ width: '25%', textAlign: 'right' }}>{formatMonto(item.precio_venta)}</span>
+            <span style={{ width: '25%', textAlign: 'right' }}>{formatMonto(item.cantidad * item.precio_venta)}</span>
+          </div>
+        </div>
+      ))}
 
-      {/* Totales */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-          <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>TOTAL:</Typography>
-          <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Bs. {formatMonto(total)}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontSize: '12px' }}>A Cuenta / Adelanto:</Typography>
-          <Typography sx={{ fontSize: '12px' }}>Bs. {formatMonto(adelanto)}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-          <Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>SALDO POR PAGAR:</Typography>
-          <Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Bs. {formatMonto(saldo)}</Typography>
-        </Box>
-      </Box>
+      <div style={S.divider} />
 
-      <Typography sx={{ fontSize: '12px', mt: 2 }}>--------------------------------</Typography>
+      {/* TOTALES */}
+      <div>
+        <div style={{ ...S.row, ...S.bigTotal }}>
+          <span>TOTAL:</span><span>Bs. {formatMonto(total)}</span>
+        </div>
+        <div style={S.row}>
+          <span>A Cuenta / Adelanto:</span><span>Bs. {formatMonto(adelanto)}</span>
+        </div>
+        <div style={{ ...S.row, ...S.bold }}>
+          <span>SALDO POR PAGAR:</span><span>Bs. {formatMonto(saldo)}</span>
+        </div>
+      </div>
 
-      {/* Pie de página */}
-      <Box sx={{ textAlign: 'center', mt: 1 }}>
-        <Typography sx={{ fontSize: '12px' }}>¡Gracias por su preferencia!</Typography>
-        <Typography sx={{ fontSize: '12px' }}>Este documento es una cotización y no es válido como factura.</Typography>
-      </Box>
-    </Box>
+      <div style={S.divider} />
+
+      {/* PIE */}
+      <div style={S.center}>
+        <div>¡Gracias por su preferencia!</div>
+        <div style={S.small}>Este documento es una cotización y no es válido como factura.</div>
+      </div>
+    </div>
   );
 });
 

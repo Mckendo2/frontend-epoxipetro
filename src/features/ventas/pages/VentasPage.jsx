@@ -965,16 +965,18 @@ const VentasPage = () => {
         <DialogContent dividers sx={{ backgroundColor: '#f3f4f6', display: 'flex', justifyContent: 'center' }}>
           {/* Contenedor del ticket que se imprimirá */}
           {ticketData && (
-            <TicketVenta 
-              ref={ticketRef}
-              ventaInfo={ticketData.ventaInfo}
-              cliente={ticketData.cliente}
-              items={ticketData.items}
-              total={ticketData.total}
-              descuento={ticketData.descuento}
-              pagado={ticketData.pagado}
-              cambio={ticketData.cambio}
-            />
+            <Box sx={{ width: '302px', backgroundColor: '#fff', boxShadow: 2 }}>
+              <TicketVenta 
+                ref={ticketRef}
+                ventaInfo={ticketData.ventaInfo}
+                cliente={ticketData.cliente}
+                items={ticketData.items}
+                total={ticketData.total}
+                descuento={ticketData.descuento}
+                pagado={ticketData.pagado}
+                cambio={ticketData.cambio}
+              />
+            </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>

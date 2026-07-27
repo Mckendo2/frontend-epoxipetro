@@ -1,135 +1,115 @@
 import React, { forwardRef } from 'react';
-import { Box, Typography, Divider } from '@mui/material';
 import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 
+const S = {
+  root: {
+    padding: '6px 8px',
+    width: '100%',
+    backgroundColor: '#fff',
+    color: '#000',
+    fontFamily: "'Courier New', Courier, monospace",
+    fontSize: '11px',
+    lineHeight: '1.3',
+  },
+  center: { textAlign: 'center' },
+  bold: { fontWeight: 'bold' },
+  row: { display: 'flex', justifyContent: 'space-between' },
+  divider: { borderTop: '1px dashed #000', margin: '4px 0' },
+  bigTotal: { fontWeight: 'bold', fontSize: '14px' },
+  small: { fontSize: '10px' },
+  mb2: { marginBottom: '2px' },
+  mb4: { marginBottom: '4px' },
+  mt4: { marginTop: '4px' },
+};
+
 const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 0, pagado, cambio = 0 }, ref) => {
-  // Configuración base adaptada para impresoras de 58mm y 80mm
-  // 58mm suele tener unos 32 caracteres de ancho
-  // 80mm suele tener unos 48 caracteres de ancho
   const subtotalNeto = total + descuento;
 
   return (
-    <div 
-      ref={ref} 
-      style={{
-        padding: '10px',
-        width: '100%',
-        maxWidth: '320px', 
-        margin: '0 auto',
-        backgroundColor: '#fff',
-        color: '#000',
-        fontFamily: 'monospace',
-        fontSize: '12px'
-      }}
-    >
+    <div ref={ref} style={S.root}>
+      <style>{`
+        @media print {
+          @page { size: 80mm auto; margin: 2mm 3mm; }
+          body { margin: 0; }
+          * { -webkit-print-color-adjust: exact; }
+        }
+      `}</style>
+
       {/* CABECERA */}
-      <Box sx={{ textAlign: 'center', mb: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '1px' }}>
-          FERRETERÍA ALVAREZ
-        </Typography>
-        <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>La Paz, El Alto</Typography>
-        <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>Cel: +591 65555942</Typography>
-      </Box>
+      <div style={{ ...S.center, ...S.mb2 }}>
+        <div style={{ fontWeight: 'bold', fontSize: '13px', letterSpacing: '1px' }}>FERRETERÍA ALVAREZ</div>
+        <div>La Paz, El Alto</div>
+        <div>Cel: +591 65555942</div>
+      </div>
 
-      <Divider sx={{ borderStyle: 'dashed', my: 1, borderColor: '#000' }} />
+      <div style={S.divider} />
 
-      {/* DATOS DE LA VENTA */}
-      <Box sx={{ mb: 1, fontSize: '12px' }}>
-        <Typography sx={{ fontSize: 'inherit', fontFamily: 'monospace', fontWeight: 'bold' }}>
-          Ticket N°: {ventaInfo?.nro_ticket || '00000001'}
-        </Typography>
-        <Typography sx={{ fontSize: 'inherit', fontFamily: 'monospace' }}>
-          Fecha: {ventaInfo?.fecha ? format(new Date(ventaInfo.fecha), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}
-        </Typography>
-        <Typography sx={{ fontSize: 'inherit', fontFamily: 'monospace' }}>
-          Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Consumidor Final'}
-        </Typography>
-      </Box>
+      {/* DATOS */}
+      <div style={S.mb2}>
+        <div style={S.bold}>Ticket N°: {ventaInfo?.nro_ticket || '00000001'}</div>
+        <div>Fecha: {ventaInfo?.fecha ? format(new Date(ventaInfo.fecha), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+        <div>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Consumidor Final'}</div>
+      </div>
 
-      <Divider sx={{ borderStyle: 'dashed', my: 1, borderColor: '#000' }} />
+      <div style={S.divider} />
 
-      {/* ENCABEZADO DE TABLA */}
-      <table style={{ width: '100%', fontSize: '11px', textAlign: 'left', borderCollapse: 'collapse', marginBottom: '8px' }}>
+      {/* ITEMS */}
+      <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse', margin: '2px 0' }}>
         <thead>
           <tr style={{ borderBottom: '1px dashed #000' }}>
-            <th style={{ paddingBottom: '4px', width: '15%' }}>CANT</th>
-            <th style={{ paddingBottom: '4px', width: '45%' }}>DESCRIPCIÓN</th>
-            <th style={{ paddingBottom: '4px', width: '20%', textAlign: 'right' }}>PRECIO</th>
-            <th style={{ paddingBottom: '4px', width: '20%', textAlign: 'right' }}>TOTAL</th>
+            <th style={{ textAlign: 'left', width: '12%', paddingBottom: '2px' }}>Cant</th>
+            <th style={{ textAlign: 'left', width: '48%', paddingBottom: '2px' }}>Descripción</th>
+            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px' }}>P.U.</th>
+            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px' }}>Total</th>
           </tr>
         </thead>
         <tbody>
-          {items?.map((item, idx) => {
-            const subtotalItem = item.cantidad * item.precio_venta;
-            return (
-              <tr key={idx}>
-                <td style={{ verticalAlign: 'top', paddingTop: '4px' }}>{item.cantidad}</td>
-                <td style={{ verticalAlign: 'top', paddingTop: '4px', paddingRight: '4px' }}>
-                  {item.producto} {item.nombre ? `- ${item.nombre}` : ''}
-                </td>
-                <td style={{ verticalAlign: 'top', paddingTop: '4px', textAlign: 'right' }}>
-                  {Number(item.precio_venta).toFixed(2)}
-                </td>
-                <td style={{ verticalAlign: 'top', paddingTop: '4px', textAlign: 'right' }}>
-                  {subtotalItem.toFixed(2)}
-                </td>
-              </tr>
-            );
-          })}
+          {items?.map((item, idx) => (
+            <tr key={idx}>
+              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>{item.cantidad}</td>
+              <td style={{ verticalAlign: 'top', padding: '2px 2px 2px 0' }}>
+                {item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}
+              </td>
+              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0' }}>{Number(item.precio_venta).toFixed(2)}</td>
+              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0' }}>{(item.cantidad * item.precio_venta).toFixed(2)}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
 
-      <Divider sx={{ borderStyle: 'dashed', my: 1, borderColor: '#000' }} />
+      <div style={S.divider} />
 
       {/* TOTALES */}
-      <Box sx={{ mb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>SUBTOTAL:</Typography>
-          <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>Bs. {subtotalNeto.toFixed(2)}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>DESCUENTO:</Typography>
-          <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>-Bs. {Number(descuento).toFixed(2)}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-          <Typography sx={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'monospace' }}>TOTAL:</Typography>
-          <Typography sx={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'monospace' }}>
-            Bs. {Number(total).toFixed(2)}
-          </Typography>
-        </Box>
-      </Box>
+      <div style={S.mb2}>
+        <div style={S.row}><span>SUBTOTAL:</span><span>Bs. {subtotalNeto.toFixed(2)}</span></div>
+        {descuento > 0 && <div style={S.row}><span>DESCUENTO:</span><span>-Bs. {Number(descuento).toFixed(2)}</span></div>}
+        <div style={{ ...S.row, ...S.bigTotal, marginTop: '2px' }}>
+          <span>TOTAL:</span><span>Bs. {Number(total).toFixed(2)}</span>
+        </div>
+      </div>
 
-      {/* PAGO Y CAMBIO */}
-      <Box sx={{ mb: 2 }}>
-        {pagado !== undefined && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>Monto Pagado:</Typography>
-            <Typography sx={{ fontSize: '12px', fontFamily: 'monospace' }}>Bs. {Number(pagado).toFixed(2)}</Typography>
-          </Box>
-        )}
-        {cambio > 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 'bold' }}>CAMBIO A DEVOLVER:</Typography>
-            <Typography sx={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 'bold' }}>Bs. {Number(cambio).toFixed(2)}</Typography>
-          </Box>
-        )}
-      </Box>
+      {/* PAGO */}
+      {(pagado !== undefined || cambio > 0) && (
+        <div style={S.mb2}>
+          {pagado !== undefined && <div style={S.row}><span>Monto Pagado:</span><span>Bs. {Number(pagado).toFixed(2)}</span></div>}
+          {cambio > 0 && <div style={{ ...S.row, ...S.bold }}><span>CAMBIO:</span><span>Bs. {Number(cambio).toFixed(2)}</span></div>}
+        </div>
+      )}
 
-      {/* CÓDIGO QR Y PIE DE PÁGINA */}
-      <Box sx={{ textAlign: 'center', mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <QRCodeSVG 
-          value={`Venta: ${ventaInfo?.nro_ticket || '000001'} | Total: Bs. ${Number(total).toFixed(2)} | Descuento: Bs. ${Number(descuento).toFixed(2)} | Gracias por su compra en FERRETERÍA ALVAREZ.`} 
-          size={100} 
-        />
-        <Typography sx={{ fontSize: '10px', fontFamily: 'monospace', mt: 2, mb: 1 }}>
-          Documento no válido como factura fiscal.
-        </Typography>
-        <Typography sx={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 'bold' }}>
-          ¡Gracias por su compra!
-        </Typography>
-      </Box>
+      <div style={S.divider} />
 
+      {/* PIE */}
+      <div style={{ ...S.center, marginTop: '4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
+          <QRCodeSVG
+            value={`Venta: ${ventaInfo?.nro_ticket || '000001'} | Total: Bs. ${Number(total).toFixed(2)} | FERRETERÍA ALVAREZ`}
+            size={80}
+          />
+        </div>
+        <div style={S.small}>Documento no válido como factura fiscal.</div>
+        <div style={S.bold}>¡Gracias por su compra!</div>
+      </div>
     </div>
   );
 });
