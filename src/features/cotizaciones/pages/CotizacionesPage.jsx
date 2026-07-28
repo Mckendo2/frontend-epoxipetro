@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   Search, Plus, Minus, Trash2, Banknote, Smartphone, CreditCard,
-  User, Package, X, Printer, FileText, List, CheckCircle, UserPlus
+  User, Package, X, Printer, FileText, List, CheckCircle, UserPlus, Ban, AlertCircle
 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import TicketCotizacion from '../components/TicketCotizacion';
@@ -237,6 +237,36 @@ const CotizacionesPage = () => {
       if (res.ok) {
         notify(`Venta #${data.venta_id} generada exitosamente`);
         setModalCobro(false);
+        fetchHistorial();
+      } else {
+        notify(data.mensaje, 'error');
+      }
+    } catch {
+      notify('Error de red', 'error');
+    } finally {
+      setProcesando(false);
+    }
+  };
+
+  const [modalAnular, setModalAnular] = useState(false);
+  const [cotizacionAnular, setCotizacionAnular] = useState(null);
+
+  const abrirAnular = (cotizacion) => {
+    setCotizacionAnular(cotizacion);
+    setModalAnular(true);
+  };
+
+  const handleAnularCotizacion = async () => {
+    setProcesando(true);
+    try {
+      const res = await fetch(`${API_COTIZACIONES}/${cotizacionAnular.id}/anular`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        notify('Cotización anulada exitosamente');
+        setModalAnular(false);
         fetchHistorial();
       } else {
         notify(data.mensaje, 'error');
@@ -534,7 +564,7 @@ const CotizacionesPage = () => {
                           <Chip 
                             label={row.estado.toUpperCase()} 
                             size="small" 
-                            color={row.estado === 'pendiente' ? 'warning' : row.estado === 'completada' ? 'success' : 'default'}
+                            color={row.estado === 'pendiente' ? 'warning' : row.estado === 'completada' ? 'success' : row.estado === 'anulada' ? 'error' : 'default'}
                             sx={{ fontWeight: 700, borderRadius: 1 }}
                           />
                         </TableCell>
@@ -546,16 +576,28 @@ const CotizacionesPage = () => {
                               </IconButton>
                             </Tooltip>
                             {row.estado === 'pendiente' && (
-                              <Button 
-                                variant="contained" 
-                                size="small" 
-                                color="primary"
-                                startIcon={<CheckCircle size={16} />}
-                                onClick={() => abrirCobro(row)}
-                                sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, px: 2 }}
-                              >
-                                Cobrar
-                              </Button>
+                              <>
+                                <Button 
+                                  variant="contained" 
+                                  size="small" 
+                                  color="primary"
+                                  startIcon={<CheckCircle size={16} />}
+                                  onClick={() => abrirCobro(row)}
+                                  sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, px: 2 }}
+                                >
+                                  Cobrar
+                                </Button>
+                                <Button 
+                                  variant="outlined" 
+                                  size="small" 
+                                  color="error"
+                                  startIcon={<Ban size={16} />}
+                                  onClick={() => abrirAnular(row)}
+                                  sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, px: 2, minWidth: 'auto' }}
+                                >
+                                  Anular
+                                </Button>
+                              </>
                             )}
                           </Box>
                         </TableCell>
@@ -609,6 +651,33 @@ const CotizacionesPage = () => {
             sx={{ bgcolor: colorDarkBtn, '&:hover': { bgcolor: colorDarkBtnHover }, borderRadius: 2, px: 3 }}
           >
             {procesando ? 'Procesando...' : 'Cobrar y Entregar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal Anular Cotización */}
+      <Dialog open={modalAnular} onClose={() => !procesando && setModalAnular(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: 'error.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AlertCircle size={24} />
+          Anular Cotización
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {cotizacionAnular && (
+            <Alert severity="error" sx={{ borderRadius: 2 }}>
+              ¿Estás seguro que deseas anular la cotización <strong>#{cotizacionAnular.id}</strong>? Esta acción no se puede deshacer.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button onClick={() => setModalAnular(false)} disabled={procesando} sx={{ color: 'text.secondary' }}>Cancelar</Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={handleAnularCotizacion} 
+            disabled={procesando}
+            sx={{ borderRadius: 2, px: 3 }}
+          >
+            {procesando ? 'Procesando...' : 'Sí, Anular'}
           </Button>
         </DialogActions>
       </Dialog>
