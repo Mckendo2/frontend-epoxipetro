@@ -11,7 +11,7 @@ import {
   Truck, Plus, Search, Edit2, DollarSign, AlertCircle,
   CheckCircle, Clock, Building2, Phone, Mail, MapPin,
   CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet,
-  ShoppingCart, Package, Barcode, Trash2, Tag, Undo2, Eye
+  ShoppingCart, Package, Barcode, Trash2, Tag, Undo2, Eye, PackagePlus
 } from 'lucide-react';
 
 const API_INV = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
@@ -129,10 +129,10 @@ const itemVacio = () => ({
 });
 
 const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) => {
-  const [form, setForm] = useState({
     proveedor_id: '',
     tipo_pago: 'credito',
     fecha_vencimiento: '',
+    numero_nota: '',
     nota: '',
     imagen: null,
   });
@@ -145,7 +145,7 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
 
   useEffect(() => {
     if (open) {
-      setForm({ proveedor_id: '', tipo_pago: 'credito', fecha_vencimiento: '', nota: '' });
+      setForm({ proveedor_id: '', tipo_pago: 'credito', fecha_vencimiento: '', numero_nota: '', nota: '' });
       setItems([itemVacio()]);
       setBusquedaMap({});
       setOpcionesMap({});
@@ -207,6 +207,7 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
         proveedor_id: form.proveedor_id,
         tipo_pago: form.tipo_pago,
         fecha_vencimiento: form.fecha_vencimiento,
+        numero_nota: form.numero_nota,
         nota: form.nota,
         items: itemsValidos.map(it => ({
           presentacion_id: it.modo === 'buscar' ? it.presentacion_id : null,
@@ -300,6 +301,13 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                 slotProps={{ inputLabel: { shrink: true } }} />
             </Box>
           )}
+          <Box sx={{ flex: '1 1 160px', minWidth: 160 }}>
+            <Typography variant="body2" fontWeight={700} color="text.secondary" sx={{ mb: 0.8 }}>
+              Nº Nota / Doc.
+            </Typography>
+            <TextField fullWidth size="small" placeholder="Ej. Factura #123"
+              value={form.numero_nota} onChange={e => setForm(f => ({ ...f, numero_nota: e.target.value }))} />
+          </Box>
           <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
             <Typography variant="body2" fontWeight={700} color="text.secondary" sx={{ mb: 0.8 }}>
               Nota (opcional)
@@ -450,6 +458,7 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                       <input 
                         type="file" 
                         accept="image/*"
+                        capture="environment"
                         onChange={e => actualizarItem(item._key, 'imagen_file', e.target.files[0])}
                         style={{ display: 'block', width: '100%', padding: '4px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
                       />
@@ -644,26 +653,398 @@ const ModalPago = ({ open, onClose, onSuccess, compra }) => {
   );
 };
 
-// ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
+// ─── MODAL RECEPCIÓN ADICIONAL ──────────────────────────────────────────────
 
-// ─── MODAL DEVOLUCION COMPRA ───────────────────────────────────────────────
-const ModalDetallesCompra = ({ open, onClose, compra }) => {
-  if (!compra) return null;
+const itemRecepcionVacio = () => ({
+  _key: Math.random().toString(36),
+  presentacion_id: null,
+  label: '',
+  precio_compra: '',
+  precio_venta: '',
+  cantidad: '',
+  nota: '',
+});
+
+const ModalRecepcion = ({ open, onClose, onSuccess, compra }) => {
+  const [items, setItems] = useState([itemRecepcionVacio()]);
+  const [loading, setLoading] = useState(false);
+  const [busquedaMap, setBusquedaMap] = useState({});
+  const [opcionesMap, setOpcionesMap] = useState({});
+  const [cargandoMap, setCargandoMap] = useState({});
+  const timerRef = useRef({});
+
+  useEffect(() => {
+    if (open) {
+      setItems([itemRecepcionVacio()]);
+      setBusquedaMap({});
+      setOpcionesMap({});
+      setCargandoMap({});
+    }
+  }, [open]);
+
+  const buscarProductos = (key, q) => {
+    setBusquedaMap(p => ({ ...p, [key]: q }));
+    clearTimeout(timerRef.current[key]);
+    if (!q || q.length < 2) { setOpcionesMap(p => ({ ...p, [key]: [] })); return; }
+    setCargandoMap(p => ({ ...p, [key]: true }));
+    timerRef.current[key] = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_INV}/presentaciones/buscar?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        setOpcionesMap(p => ({ ...p, [key]: Array.isArray(data) ? data : [] }));
+      } finally {
+        setCargandoMap(p => ({ ...p, [key]: false }));
+      }
+    }, 350);
+  };
+
+  const seleccionar = (key, opcion) => {
+    if (!opcion) return;
+    setItems(prev => prev.map(it =>
+      it._key === key
+        ? { ...it, presentacion_id: opcion.id, label: opcion.label,
+            precio_compra: opcion.precio_compra || '',
+            precio_venta: opcion.precio_venta || '' }
+        : it
+    ));
+  };
+
+  const actualizar = (key, campo, valor) =>
+    setItems(prev => prev.map(it => it._key === key ? { ...it, [campo]: valor } : it));
+
+  const agregar = () => setItems(prev => [...prev, itemRecepcionVacio()]);
+  const eliminar = (key) => setItems(prev => prev.filter(it => it._key !== key));
+
+  const totalAdicional = items.reduce((acc, it) => {
+    const sub = parseFloat(it.precio_compra || 0) * parseFloat(it.cantidad || 0);
+    return acc + (isNaN(sub) ? 0 : sub);
+  }, 0);
+
+  const puedeContinuar = items.some(it => it.presentacion_id && parseFloat(it.cantidad) > 0);
+
+  const handleSubmit = async () => {
+    const itemsValidos = items.filter(it => it.presentacion_id && parseFloat(it.cantidad) > 0);
+    if (!itemsValidos.length) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/compras/${compra.id}/recepcion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: itemsValidos.map(it => ({
+            presentacion_id: it.presentacion_id,
+            cantidad: parseFloat(it.cantidad),
+            precio_compra: parseFloat(it.precio_compra) || 0,
+            precio_venta: parseFloat(it.precio_venta) || 0,
+            nota: it.nota || ''
+          }))
+        })
+      });
+      const data = await res.json();
+      if (res.ok) { onSuccess(data.mensaje); onClose(); }
+      else alert(data.mensaje || 'Error al registrar la recepción');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>Detalles del Pedido #{compra.id}</DialogTitle>
-      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="body2" fontWeight={700}>Nota / Observación:</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap', bgcolor: '#f9fafb', p: 2, borderRadius: 1, border: '1px solid #e5e7eb' }}>
-          {compra.nota || 'Sin nota registrada.'}
-        </Typography>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+      <DialogTitle sx={{ fontWeight: 800, fontSize: '1.1rem', pb: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(16,185,129,0.12)', color: '#10b981' }}>
+            <PackagePlus size={22} />
+          </Box>
+          <Box>
+            Recepción Adicional
+            {compra && (
+              <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                Pedido #{compra.id} — {compra.proveedor}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent sx={{ pt: '20px !important' }}>
+        <Alert severity="info" sx={{ mb: 2.5, borderRadius: 2 }}>
+          Los productos que agregues aquí subirán directo al <strong>stock del almacén</strong> y el monto se sumará al total del pedido.
+        </Alert>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+          <Typography variant="body1" fontWeight={700}>Productos a recibir</Typography>
+          <Button size="small" startIcon={<Plus size={14} />} onClick={agregar}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}>
+            Agregar producto
+          </Button>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {items.map((item, idx) => (
+            <Box key={item._key} sx={{
+              p: 2, borderRadius: 2, border: '1px solid',
+              borderColor: item.presentacion_id ? 'success.main' : 'divider',
+              bgcolor: item.presentacion_id ? 'rgba(16,185,129,0.04)' : 'background.paper',
+              position: 'relative', transition: 'all 0.15s'
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                <Chip label={`Ítem ${idx + 1}`} size="small"
+                  sx={{ fontWeight: 700, bgcolor: 'rgba(16,185,129,0.1)', color: '#10b981' }} />
+                {items.length > 1 && (
+                  <Tooltip title="Eliminar">
+                    <IconButton size="small" color="error" onClick={() => eliminar(item._key)}>
+                      <Trash2 size={16} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                {/* Buscar producto */}
+                <Box sx={{ flex: '2 1 250px', minWidth: 220 }}>
+                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Buscar producto *
+                  </Typography>
+                  <Autocomplete
+                    size="small" freeSolo
+                    options={opcionesMap[item._key] || []}
+                    getOptionLabel={(o) => typeof o === 'string' ? o : o.label}
+                    loading={cargandoMap[item._key]}
+                    inputValue={busquedaMap[item._key] ?? item.label ?? ''}
+                    onInputChange={(_, val) => buscarProductos(item._key, val)}
+                    onChange={(_, val) => { if (val && typeof val === 'object') seleccionar(item._key, val); }}
+                    renderInput={(params) => (
+                      <TextField {...params} placeholder="Escribe para buscar..."
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (<><Search size={14} color="#9ca3af" style={{ marginRight: 4 }} />{params.InputProps?.startAdornment}</>),
+                          endAdornment: (<>{cargandoMap[item._key] ? <CircularProgress size={14} /> : null}{params.InputProps?.endAdornment}</>)
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+
+                {/* Cantidad */}
+                <Box sx={{ flex: '0 1 100px', minWidth: 90 }}>
+                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Cantidad *</Typography>
+                  <TextField fullWidth size="small" type="number" placeholder="0"
+                    value={item.cantidad} onChange={e => actualizar(item._key, 'cantidad', e.target.value)} />
+                </Box>
+
+                {/* P. Compra */}
+                <Box sx={{ flex: '0 1 120px', minWidth: 100 }}>
+                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>P. Compra (Bs.)</Typography>
+                  <TextField fullWidth size="small" type="number" placeholder="0.00"
+                    value={item.precio_compra} onChange={e => actualizar(item._key, 'precio_compra', e.target.value)}
+                    slotProps={{ input: { startAdornment: <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>Bs.</Typography> } }}
+                  />
+                </Box>
+
+                {/* P. Venta */}
+                <Box sx={{ flex: '0 1 120px', minWidth: 100 }}>
+                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>P. Venta (Bs.)</Typography>
+                  <TextField fullWidth size="small" type="number" placeholder="0.00"
+                    value={item.precio_venta} onChange={e => actualizar(item._key, 'precio_venta', e.target.value)}
+                    slotProps={{ input: { startAdornment: <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>Bs.</Typography> } }}
+                  />
+                </Box>
+
+                {/* Nota */}
+                <Box sx={{ flex: '1 1 160px', minWidth: 140 }}>
+                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Nota (opcional)</Typography>
+                  <TextField fullWidth size="small" placeholder="Ej. Lote B"
+                    value={item.nota} onChange={e => actualizar(item._key, 'nota', e.target.value)} />
+                </Box>
+
+                {/* Subtotal */}
+                {item.precio_compra && item.cantidad ? (
+                  <Box sx={{ flex: '0 0 auto', alignSelf: 'flex-end', pb: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary">Subtotal</Typography>
+                    <Typography variant="body2" fontWeight={700} color="success.main">
+                      Bs. {formatMonto(parseFloat(item.precio_compra || 0) * parseFloat(item.cantidad || 0))}
+                    </Typography>
+                  </Box>
+                ) : null}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+
+        {/* Total adicional */}
+        <Box sx={{
+          mt: 2.5, p: 2, borderRadius: 2,
+          background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 100%)',
+          border: '1px solid rgba(16,185,129,0.25)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PackagePlus size={18} color="#10b981" />
+            <Typography variant="body2" fontWeight={700}>Monto adicional al pedido</Typography>
+          </Box>
+          <Typography variant="h5" fontWeight={800} color="success.main">
+            Bs. {formatMonto(totalAdicional)}
+          </Typography>
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} sx={{ color: 'text.secondary' }}>Cerrar</Button>
+
+      <DialogActions sx={{ p: 2.5, gap: 1.5 }}>
+        <Button onClick={onClose} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={loading || !puedeContinuar}
+          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircle size={16} />}
+          sx={{
+            textTransform: 'none', fontWeight: 700, px: 3,
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            boxShadow: '0 4px 14px rgba(16,185,129,0.4)',
+            '&:hover': { background: 'linear-gradient(135deg, #059669, #047857)' }
+          }}>
+          {loading ? 'Registrando…' : 'Recibir Mercadería'}
+        </Button>
       </DialogActions>
     </Dialog>
   );
 };
+
+// ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
+
+// ─── MODAL DEVOLUCION COMPRA ───────────────────────────────────────────────
+const ModalDetallesCompra = ({ open, onClose, compra }) => {
+  const [items, setItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(false);
+
+  useEffect(() => {
+    if (open && compra?.id) {
+      setLoadingItems(true);
+      fetch(`${API}/compras/${compra.id}/items`)
+        .then(r => r.json())
+        .then(data => setItems(Array.isArray(data) ? data : []))
+        .catch(() => setItems([]))
+        .finally(() => setLoadingItems(false));
+    } else {
+      setItems([]);
+    }
+  }, [open, compra]);
+
+  if (!compra) return null;
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+      <DialogTitle sx={{ fontWeight: 800, pb: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+            <Eye size={20} />
+          </Box>
+          <Box>
+            Detalles del Pedido #{compra.id}
+            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+              {compra.proveedor} — {new Date(compra.created_at).toLocaleDateString('es-BO', { day: '2-digit', month: 'long', year: 'numeric' })}
+            </Typography>
+          </Box>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: '20px !important' }}>
+
+        {/* Resumen del pedido */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 1.5 }}>
+          {[
+            { label: 'Monto Total', value: `Bs. ${formatMonto(compra.monto)}`, color: 'text.primary' },
+            { label: 'Pagado', value: `Bs. ${formatMonto(compra.monto_pagado)}`, color: 'success.main' },
+            { label: 'Saldo Pendiente', value: `Bs. ${formatMonto(compra.saldo_pendiente)}`, color: 'error.main' },
+            { label: 'Tipo de Pago', value: compra.tipo_pago === 'credito' ? 'A Crédito' : 'Contado', color: 'text.secondary' },
+          ].map(card => (
+            <Box key={card.label} sx={{ p: 1.5, borderRadius: 2, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">{card.label}</Typography>
+              <Typography variant="body1" fontWeight={700} color={card.color}>{card.value}</Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* Nota general del pedido */}
+        <Box>
+          <Typography variant="body2" fontWeight={700} mb={0.8}>📝 Nota general del pedido:</Typography>
+          <Typography variant="body2" color="text.secondary"
+            sx={{ whiteSpace: 'pre-wrap', bgcolor: 'background.default', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', fontStyle: compra.nota ? 'normal' : 'italic' }}>
+            {compra.nota || 'Sin nota registrada.'}
+          </Typography>
+        </Box>
+
+        {/* Ítems recibidos */}
+        <Box>
+          <Typography variant="body2" fontWeight={700} mb={1}>📦 Ítems recibidos en almacén:</Typography>
+          {loadingItems ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : items.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center', fontStyle: 'italic' }}>
+              No se encontraron ítems registrados.
+            </Typography>
+          ) : (
+            <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+              <Table size="small">
+                <TableHead sx={{ bgcolor: 'background.default' }}>
+                  <TableRow>
+                    {['Producto', 'Cant.', 'P. Compra', 'Subtotal', 'Nota del ítem'].map(h => (
+                      <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.78rem', color: 'text.secondary' }}>{h}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {items.map((it, i) => {
+                    const subtotal = parseFloat(it.cantidad || 0) * parseFloat(it.precio_compra || 0);
+                    // Extraer nota del ítem desde el campo "nota" del movimiento
+                    const notaItem = it.nota
+                      ? it.nota.replace(/^Orden de compra #\d+\s*-?\s*/i, '')
+                             .replace(/^Recepción adicional — Orden de compra #\d+\s*-?\s*/i, '')
+                             .trim()
+                      : '';
+                    return (
+                      <TableRow key={i} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={600}>{it.producto_nombre}</Typography>
+                          <Typography variant="caption" color="text.secondary">{it.presentacion_nombre}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={700}>{it.cantidad}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">Bs. {formatMonto(it.precio_compra)}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={700} color="warning.main">
+                            Bs. {formatMonto(subtotal)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {notaItem ? (
+                            <Typography variant="caption" sx={{
+                              bgcolor: 'rgba(99,102,241,0.08)', color: '#6366f1',
+                              px: 1, py: 0.3, borderRadius: 1, fontWeight: 600, display: 'inline-block'
+                            }}>
+                              {notaItem}
+                            </Typography>
+                          ) : (
+                            <Typography variant="caption" color="text.disabled">—</Typography>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Box>
+          )}
+        </Box>
+      </DialogContent>
+
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} sx={{ color: 'text.secondary', textTransform: 'none' }}>Cerrar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 
 
 const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
@@ -881,6 +1262,7 @@ const ProveedoresPage = () => {
   const [modalPago, setModalPago] = useState(false);
   const [modalDevolucion, setModalDevolucion] = useState(false);
   const [modalDetalles, setModalDetalles] = useState(false);
+  const [modalRecepcion, setModalRecepcion] = useState(false);
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
 
   const notify = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
@@ -1088,6 +1470,11 @@ const ProveedoresPage = () => {
                               <Undo2 size={18} />
                             </IconButton>
                           </Tooltip>
+                          <Tooltip title="Recepción adicional — agregar más stock a este pedido">
+                            <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalRecepcion(true); }} sx={{ color: '#10b981' }}>
+                              <PackagePlus size={18} />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -1213,6 +1600,10 @@ const ProveedoresPage = () => {
 
 
       <ModalDetallesCompra open={modalDetalles} onClose={() => setModalDetalles(false)} compra={compraSeleccionada} />
+      <ModalRecepcion open={modalRecepcion}
+        onClose={() => { setModalRecepcion(false); setCompraSeleccionada(null); }}
+        onSuccess={(msg) => { notify(msg || 'Recepción registrada'); fetchAll(); }}
+        compra={compraSeleccionada} />
 
       <Snackbar open={snackbar.open} autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
