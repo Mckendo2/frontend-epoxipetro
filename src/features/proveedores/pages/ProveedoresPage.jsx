@@ -11,7 +11,7 @@ import {
   Truck, Plus, Search, Edit2, DollarSign, AlertCircle,
   CheckCircle, Clock, Building2, Phone, Mail, MapPin,
   CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet,
-  ShoppingCart, Package, Barcode, Trash2, Tag, Undo2, Eye, PackagePlus
+  ShoppingCart, Package, Barcode, Trash2, Tag, Undo2, Eye, PlusCircle
 } from 'lucide-react';
 
 const API_INV = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
@@ -753,7 +753,7 @@ const ModalRecepcion = ({ open, onClose, onSuccess, compra }) => {
       <DialogTitle sx={{ fontWeight: 800, fontSize: '1.1rem', pb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(16,185,129,0.12)', color: '#10b981' }}>
-            <PackagePlus size={22} />
+            <PlusCircle size={22} />
           </Box>
           <Box>
             Recepción Adicional
@@ -879,7 +879,7 @@ const ModalRecepcion = ({ open, onClose, onSuccess, compra }) => {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <PackagePlus size={18} color="#10b981" />
+            <PlusCircle size={18} color="#10b981" />
             <Typography variant="body2" fontWeight={700}>Monto adicional al pedido</Typography>
           </Box>
           <Typography variant="h5" fontWeight={800} color="success.main">
@@ -1472,7 +1472,7 @@ const ProveedoresPage = () => {
                           </Tooltip>
                           <Tooltip title="Recepción adicional — agregar más stock a este pedido">
                             <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalRecepcion(true); }} sx={{ color: '#10b981' }}>
-                              <PackagePlus size={18} />
+                              <PlusCircle size={18} />
                             </IconButton>
                           </Tooltip>
                         </Box>
