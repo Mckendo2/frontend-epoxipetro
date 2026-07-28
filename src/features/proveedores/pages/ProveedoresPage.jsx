@@ -129,6 +129,7 @@ const itemVacio = () => ({
 });
 
 const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) => {
+  const [form, setForm] = useState({
     proveedor_id: '',
     tipo_pago: 'credito',
     fecha_vencimiento: '',
@@ -1431,7 +1432,9 @@ const ProveedoresPage = () => {
                         <Typography variant="body2" fontWeight={600} color="text.primary">{c.proveedor}</Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200 }}>Pedido #{c.id}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200 }}>
+                          {c.descripcion || `Pedido #${c.id}`}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight={600}>Bs. {formatMonto(c.monto)}</Typography>
