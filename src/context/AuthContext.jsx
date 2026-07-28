@@ -9,9 +9,19 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
+  // Temporizador de inactividad (15 minutos = 15 * 60 * 1000 = 900000 ms)
+  const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; 
+
   useEffect(() => {
-    // Si hay token, intentamos recuperar el usuario del localStorage
+    // Si hay token, verificamos primero si la inactividad expiró
     if (token) {
+      const lastActivity = localStorage.getItem('lastActivity');
+      if (lastActivity && Date.now() - parseInt(lastActivity, 10) > INACTIVITY_LIMIT_MS) {
+        logout();
+        setLoading(false);
+        return; // Salimos porque ya expiró
+      }
+
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -27,6 +37,7 @@ export const AuthProvider = ({ children }) => {
   const login = (newToken, userData) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('lastActivity', Date.now().toString());
     setToken(newToken);
     setUser(userData);
   };
@@ -34,41 +45,51 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('lastActivity');
     setToken(null);
     setUser(null);
   };
 
-  // Temporizador de inactividad (15 minutos = 15 * 60 * 1000 = 900000 ms)
-  const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; 
-
   useEffect(() => {
-    let inactivityTimer;
+    if (!token) return;
 
-    const resetTimer = () => {
-      if (inactivityTimer) clearTimeout(inactivityTimer);
-      if (token) {
-        inactivityTimer = setTimeout(() => {
-          logout();
-          // Opcionalmente podemos disparar un evento o alerta, pero el estado cambia a null y forzará el login
-        }, INACTIVITY_LIMIT_MS);
-      }
+    const updateActivity = () => {
+      localStorage.setItem('lastActivity', Date.now().toString());
     };
 
-    // Solo activamos los listeners si hay un usuario logueado
-    if (token) {
-      resetTimer();
-      window.addEventListener('mousemove', resetTimer);
-      window.addEventListener('keydown', resetTimer);
-      window.addEventListener('click', resetTimer);
-      window.addEventListener('scroll', resetTimer);
-    }
+    // Al cargar la app con token activo, refrescamos la actividad
+    updateActivity();
+
+    // Usamos un throttle para no escribir en localStorage por cada pixel que se mueva el mouse
+    let throttleTimer = null;
+    const handleActivity = () => {
+      if (throttleTimer) return;
+      throttleTimer = setTimeout(() => {
+        updateActivity();
+        throttleTimer = null;
+      }, 1000); // 1 segundo de intervalo para optimizar rendimiento
+    };
+
+    // Validar expiración cada 10 segundos
+    const checkInterval = setInterval(() => {
+      const lastAct = localStorage.getItem('lastActivity');
+      if (lastAct && Date.now() - parseInt(lastAct, 10) > INACTIVITY_LIMIT_MS) {
+        logout();
+      }
+    }, 10000);
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('scroll', handleActivity);
 
     return () => {
-      if (inactivityTimer) clearTimeout(inactivityTimer);
-      window.removeEventListener('mousemove', resetTimer);
-      window.removeEventListener('keydown', resetTimer);
-      window.removeEventListener('click', resetTimer);
-      window.removeEventListener('scroll', resetTimer);
+      if (throttleTimer) clearTimeout(throttleTimer);
+      clearInterval(checkInterval);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
     };
   }, [token]);
 
