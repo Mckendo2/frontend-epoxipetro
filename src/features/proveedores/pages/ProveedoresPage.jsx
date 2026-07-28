@@ -1142,7 +1142,7 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/${compra.id}/devolucion`, {
+      const res = await fetch(`${API}/compras/${compra.id}/devolucion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ items: validItems })
