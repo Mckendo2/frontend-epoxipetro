@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   Package, Plus, Search, ChevronDown, ChevronRight, Tag, AlertTriangle,
-  Warehouse, Store, TrendingUp, Edit2, Barcode, ArrowRightLeft, Download, Upload, XCircle
+  Warehouse, Store, TrendingUp, Edit2, Barcode, ArrowRightLeft, Download, Upload, XCircle, Trash2
 } from 'lucide-react';
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
@@ -171,6 +171,24 @@ const InventarioPage = () => {
     try {
       const res = await fetch(`${API}/presentaciones/${formEditarPresentacion.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formEditarPresentacion) });
       if (res.ok) { notify('Presentación actualizada'); setModalEditarPresentacion(false); fetchData(); }
+      else { const err = await res.json(); notify(err.mensaje, 'error'); }
+    } catch { notify('Error de conexión', 'error'); }
+  };
+
+  const handleEliminarProducto = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar (ocultar) este producto?')) return;
+    try {
+      const res = await fetch(`${API}/productos/${id}`, { method: 'DELETE' });
+      if (res.ok) { notify('Producto eliminado'); fetchData(); }
+      else { const err = await res.json(); notify(err.mensaje, 'error'); }
+    } catch { notify('Error de conexión', 'error'); }
+  };
+
+  const handleEliminarPresentacion = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar (ocultar) esta presentación?')) return;
+    try {
+      const res = await fetch(`${API}/presentaciones/${id}`, { method: 'DELETE' });
+      if (res.ok) { notify('Presentación eliminada'); fetchData(); }
       else { const err = await res.json(); notify(err.mensaje, 'error'); }
     } catch { notify('Error de conexión', 'error'); }
   };
@@ -447,6 +465,11 @@ const InventarioPage = () => {
                           <Edit2 size={16} />
                         </IconButton>
                       </Tooltip>
+                      <Tooltip title="Eliminar Producto">
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleEliminarProducto(producto.id); }} sx={{ color: 'error.main' }}>
+                          <Trash2 size={16} />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
 
@@ -518,7 +541,6 @@ const InventarioPage = () => {
                                       <Typography variant="body2" color="text.secondary">{pr.stock_almacen} {pr.unidad}</Typography>
                                     </TableCell>
                                     <TableCell sx={{ textAlign: 'right' }}>
-
                                       <Tooltip title="Trasladar a Tienda">
                                         <IconButton size="small" sx={{ color: '#6366f1' }} onClick={(e) => { e.stopPropagation(); setSelectedPresentacion(pr); setModalTraslado(true); }}>
                                           <ArrowRightLeft size={16} />
@@ -538,6 +560,11 @@ const InventarioPage = () => {
                                           setModalEditarPresentacion(true); 
                                         }}>
                                           <Edit2 size={16} />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <Tooltip title="Eliminar">
+                                        <IconButton size="small" sx={{ color: 'error.main' }} onClick={(e) => { e.stopPropagation(); handleEliminarPresentacion(pr.id); }}>
+                                          <Trash2 size={16} />
                                         </IconButton>
                                       </Tooltip>
                                     </TableCell>
