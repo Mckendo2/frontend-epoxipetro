@@ -1148,7 +1148,12 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
         body: JSON.stringify({ items: validItems })
       });
       if (res.ok) {
-        onSuccess('Devolución registrada exitosamente');
+        const data = await res.json();
+        if (data.eliminada) {
+          onSuccess('✅ Devolución total registrada. La orden de compra fue eliminada automáticamente.');
+        } else {
+          onSuccess('Devolución registrada exitosamente');
+        }
         onClose();
       } else {
         const err = await res.json();
