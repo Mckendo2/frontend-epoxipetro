@@ -176,7 +176,7 @@ const InventarioPage = () => {
   };
 
   const handleEliminarProducto = async (id) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar (ocultar) este producto?')) return;
+    if (!window.confirm('¿Estás seguro de que deseas eliminar permanentemente este producto? Esto no se puede deshacer.')) return;
     try {
       const res = await fetch(`${API}/productos/${id}`, { method: 'DELETE' });
       if (res.ok) { notify('Producto eliminado'); fetchData(); }
@@ -185,7 +185,7 @@ const InventarioPage = () => {
   };
 
   const handleEliminarPresentacion = async (id) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar (ocultar) esta presentación?')) return;
+    if (!window.confirm('¿Estás seguro de que deseas eliminar permanentemente esta presentación? Esto no se puede deshacer.')) return;
     try {
       const res = await fetch(`${API}/presentaciones/${id}`, { method: 'DELETE' });
       if (res.ok) { notify('Presentación eliminada'); fetchData(); }
