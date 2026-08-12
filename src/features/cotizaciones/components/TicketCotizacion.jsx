@@ -32,21 +32,34 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
           @page {
             size: 80mm auto;
             margin: 0 !important;
+            padding: 0 !important;
           }
-          html, body {
+          html {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          body {
             margin: 0 !important;
             padding: 0 !important;
             width: 80mm !important;
+            background: white !important;
           }
-          body > *:not([data-ticket-root]) {
+          body > * {
             display: none !important;
+          }
+          [data-ticket-root],
+          [data-ticket-root] * {
+            display: revert !important;
           }
           [data-ticket-root] {
             display: block !important;
             margin: 0 !important;
             padding: 3mm 3mm !important;
-            width: 100% !important;
-            box-sizing: border-box;
+            width: 80mm !important;
+            box-sizing: border-box !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
           }
           * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
