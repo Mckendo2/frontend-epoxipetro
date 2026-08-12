@@ -196,16 +196,19 @@ const MovimientosPage = () => {
       const [y, mo, day] = fechaStr.split('T')[0].split('-').map(Number);
       dY = y; dM = mo - 1; dD = day;
     } else {
-      const d = new Date(fechaStr);
-      dY = d.getFullYear(); dM = d.getMonth(); dD = d.getDate();
+      const parsed = new Date(fechaStr);
+      dY = parsed.getFullYear(); dM = parsed.getMonth(); dD = parsed.getDate();
     }
-    
+
+    // Objeto Date unificado (local) para comparaciones de rango
+    const date = new Date(dY, dM, dD);
+
     if (rangoFecha === 'personalizado') {
       const [sY, sM, sD] = fechaInicio.split('-').map(Number);
       const [eY, eM, eD] = fechaFin.split('-').map(Number);
       const start = new Date(sY, sM - 1, sD, 0, 0, 0);
       const end = new Date(eY, eM - 1, eD, 23, 59, 59, 999);
-      return d >= start && d <= end;
+      return date >= start && date <= end;
     }
 
     const [rY, rMonth, rD] = fechaInicio.split('-').map(Number);
@@ -215,7 +218,7 @@ const MovimientosPage = () => {
     if (rangoFecha === 'diario') return dY === rY && dM === rM && dD === rD;
     if (rangoFecha === 'mensual') return dY === rY && dM === rM;
     if (rangoFecha === 'anual') return dY === rY;
-    
+
     if (rangoFecha === 'semanal') {
       const day = ref.getDay();
       const diff = ref.getDate() - day + (day === 0 ? -6 : 1);
@@ -224,7 +227,7 @@ const MovimientosPage = () => {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
       endOfWeek.setHours(23,59,59,999);
-      return d >= startOfWeek && d <= endOfWeek;
+      return date >= startOfWeek && date <= endOfWeek;
     }
     return true;
   };
