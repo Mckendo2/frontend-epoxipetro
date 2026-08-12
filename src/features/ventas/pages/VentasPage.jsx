@@ -12,6 +12,7 @@ import {
 import { useReactToPrint } from 'react-to-print';
 import TicketVenta from '../components/TicketVenta';
 import { useAuth } from '../../../context/AuthContext';
+import useAutoRefresh from '../../../hooks/useAutoRefresh';
 
 const API_INV = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
 const API_VEN = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/ventas';
@@ -186,6 +187,7 @@ const VentasPage = () => {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  useAutoRefresh(fetchData, 45000); // Refresca cada 45s y al volver a la pestaña
 
   const stockFiltrado = stock.filter(pr =>
     pr.producto.toLowerCase().includes(busqueda.toLowerCase()) ||

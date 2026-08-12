@@ -10,6 +10,7 @@ import {
   Package, Plus, Search, ChevronDown, ChevronRight, Tag, AlertTriangle,
   Warehouse, Store, TrendingUp, Edit2, Barcode, ArrowRightLeft, Download, Upload, XCircle, Trash2
 } from 'lucide-react';
+import useAutoRefresh from '../../../hooks/useAutoRefresh';
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
 
@@ -121,6 +122,7 @@ const InventarioPage = () => {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  useAutoRefresh(fetchData, 60000); // Refresca cada 60s y al volver a la pestaña
 
   const toggleRow = (id) => setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
 

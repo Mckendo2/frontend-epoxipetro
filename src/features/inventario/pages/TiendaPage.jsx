@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { Store, Search, AlertTriangle, Barcode, Package, XCircle, QrCode, ChevronDown, Copy, ExternalLink } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import useAutoRefresh from '../../../hooks/useAutoRefresh';
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/inventario';
 
@@ -35,6 +36,7 @@ const TiendaPage = () => {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  useAutoRefresh(fetchData, 45000); // Refresca cada 45s y al volver a la pestaña
 
   // Lista plana: todas las presentaciones (para ver incluso las agotadas en KPIs)
   const stockTienda = productos

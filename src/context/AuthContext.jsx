@@ -12,6 +12,8 @@ export const AuthProvider = ({ children }) => {
   // Temporizador de inactividad (15 minutos = 15 * 60 * 1000 = 900000 ms)
   const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; 
 
+  const API_AUTH = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/auth';
+
   useEffect(() => {
     // Si hay token, verificamos primero si la inactividad expiró
     if (token) {
@@ -22,6 +24,7 @@ export const AuthProvider = ({ children }) => {
         return; // Salimos porque ya expiró
       }
 
+      // Cargamos el usuario desde localStorage como valor inicial rápido
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -30,6 +33,30 @@ export const AuthProvider = ({ children }) => {
       } catch (e) {
         console.error('Error parsing user from localStorage', e);
       }
+
+      // Luego refrescamos permisos desde el servidor (por si admin cambió roles/permisos)
+      fetch(`${API_AUTH}/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => {
+          if (res.status === 401 || res.status === 403 || res.status === 404) {
+            logout(); // Token inválido o usuario desactivado
+            return null;
+          }
+          return res.json();
+        })
+        .then(userData => {
+          if (userData) {
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        })
+        .catch(() => {
+          // Si falla la red, seguimos con los datos locales (modo offline)
+        })
+        .finally(() => setLoading(false));
+
+      return; // setLoading se hace en el fetch
     }
     setLoading(false);
   }, [token]);
