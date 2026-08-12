@@ -188,10 +188,17 @@ const MovimientosPage = () => {
     }
   };
 
-  const cumpleRango = (fechaStr) => {
+  const cumpleRango = (fechaStr, esGasto = false) => {
     if (!fechaStr) return false;
-    const d = new Date(fechaStr);
-    const dY = d.getFullYear(), dM = d.getMonth(), dD = d.getDate();
+    let dY, dM, dD;
+    if (esGasto) {
+      // Las fechas de gastos son "YYYY-MM-DD" — parsear como local para evitar desfase UTC
+      const [y, mo, day] = fechaStr.split('T')[0].split('-').map(Number);
+      dY = y; dM = mo - 1; dD = day;
+    } else {
+      const d = new Date(fechaStr);
+      dY = d.getFullYear(); dM = d.getMonth(); dD = d.getDate();
+    }
     
     if (rangoFecha === 'personalizado') {
       const [sY, sM, sD] = fechaInicio.split('-').map(Number);
@@ -223,7 +230,7 @@ const MovimientosPage = () => {
   };
 
   const ventasRango = ventas.filter(v => cumpleRango(v.created_at));
-  const gastosRango = gastos.filter(g => cumpleRango(g.fecha));
+  const gastosRango = gastos.filter(g => cumpleRango(g.fecha, true));
 
   const ventasFiltradas = ventasRango.filter(v =>
     String(v.id).includes(busqueda) ||

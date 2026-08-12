@@ -492,7 +492,7 @@ const VentasPage = () => {
                             </IconButton>
                             <TextField
                               value={item.cantidad}
-                              onChange={e => cambiarCantidad(item.id, parseFloat(e.target.value) || 1)}
+                              onChange={e => cambiarCantidad(item.id, parseInt(e.target.value, 10) || 1)}
                               size="small" type="number"
                               inputProps={{ min: 1, max: item.stock_tienda, style: { textAlign: 'center', padding: '6px', fontWeight: 700 } }}
                               sx={{ flex: 1, '& fieldset': { border: 'none' } }}

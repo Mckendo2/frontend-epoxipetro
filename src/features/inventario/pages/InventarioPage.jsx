@@ -69,6 +69,8 @@ const InventarioPage = () => {
   }, [location.search]);
   const [modalPresentacion, setModalPresentacion] = useState(false);
   const [modalTraslado, setModalTraslado] = useState(false);
+  const [modalStockMinimo, setModalStockMinimo] = useState(false);
+  const [formStockMinimo, setFormStockMinimo] = useState({ id: '', cantidad_minima: 0 });
   const [modalEditarPresentacion, setModalEditarPresentacion] = useState(false);
   const [selectedPresentacion, setSelectedPresentacion] = useState(null);
 
@@ -78,6 +80,27 @@ const InventarioPage = () => {
   const [formEditarPresentacion, setFormEditarPresentacion] = useState({ id: '', nombre: '', codigo_barras: '', unidad_medida_id: '', precio_compra: '', precio_venta: '' });
   const [formMovimiento, setFormMovimiento] = useState({ cantidad: '', nota: '' });
   const [visorImagen, setVisorImagen] = useState({ open: false, src: '', title: '' });
+
+  const handleActualizarStockMinimo = async () => {
+    if (formStockMinimo.cantidad_minima < 0) return notify('La cantidad mínima no puede ser negativa', 'warning');
+    try {
+      const res = await fetch(`${API}/presentaciones/${formStockMinimo.id}/minimo`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cantidad_minima: formStockMinimo.cantidad_minima })
+      });
+      if (res.ok) {
+        notify('Stock mínimo actualizado');
+        setModalStockMinimo(false);
+        fetchData();
+      } else {
+        const err = await res.json();
+        notify(err.mensaje, 'error');
+      }
+    } catch {
+      notify('Error de conexión', 'error');
+    }
+  };
 
   const notify = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
 
@@ -546,6 +569,15 @@ const InventarioPage = () => {
                                           <ArrowRightLeft size={16} />
                                         </IconButton>
                                       </Tooltip>
+                                      <Tooltip title="Editar Stock Mínimo (Alertas)">
+                                        <IconButton size="small" sx={{ color: '#f59e0b' }} onClick={(e) => { 
+                                          e.stopPropagation(); 
+                                          setFormStockMinimo({ id: pr.id, cantidad_minima: pr.stock_minimo || 0 });
+                                          setModalStockMinimo(true); 
+                                        }}>
+                                          <AlertTriangle size={16} />
+                                        </IconButton>
+                                      </Tooltip>
                                       <Tooltip title="Editar">
                                         <IconButton size="small" sx={{ color: 'text.secondary' }} onClick={(e) => { 
                                           e.stopPropagation(); 
@@ -640,7 +672,31 @@ const InventarioPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Modal Editar Presentación */}
+      {/* Modal Stock Mínimo */}
+      <Dialog open={modalStockMinimo} onClose={() => setModalStockMinimo(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Editar Stock Mínimo (Tienda)</DialogTitle>
+        <DialogContent sx={{ pt: '16px !important' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Define la cantidad mínima en Tienda para activar alertas de bajo stock.
+          </Typography>
+          <TextField
+            label="Cantidad Mínima"
+            type="number"
+            fullWidth
+            size="small"
+            value={formStockMinimo.cantidad_minima}
+            onChange={(e) => setFormStockMinimo({ ...formStockMinimo, cantidad_minima: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setModalStockMinimo(false)} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
+          <Button onClick={handleActualizarStockMinimo} variant="contained" sx={{ textTransform: 'none', background: '#f59e0b', '&:hover': { background: '#d97706' } }}>
+            Actualizar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar Notificaciones */}
       <Dialog open={modalEditarPresentacion} onClose={() => setModalEditarPresentacion(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Editar Presentación</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '24px !important' }}>

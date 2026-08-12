@@ -26,12 +26,29 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
   const { cotizacionInfo, cliente, items, total, adelanto, saldo } = data;
 
   return (
-    <div ref={ref} style={S.root}>
+    <div ref={ref} style={S.root} data-ticket-root>
       <style>{`
         @media print {
-          @page { size: 80mm auto; margin: 2mm 3mm; }
-          body { margin: 0; }
-          * { -webkit-print-color-adjust: exact; }
+          @page {
+            size: 80mm auto;
+            margin: 0 !important;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 80mm !important;
+          }
+          body > *:not([data-ticket-root]) {
+            display: none !important;
+          }
+          [data-ticket-root] {
+            display: block !important;
+            margin: 0 !important;
+            padding: 3mm 3mm !important;
+            width: 100% !important;
+            box-sizing: border-box;
+          }
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
 

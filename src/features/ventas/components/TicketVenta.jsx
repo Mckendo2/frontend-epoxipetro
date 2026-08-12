@@ -27,12 +27,29 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
   const subtotalNeto = total + descuento;
 
   return (
-    <div ref={ref} style={S.root}>
+    <div ref={ref} style={S.root} data-ticket-root>
       <style>{`
         @media print {
-          @page { size: 80mm auto; margin: 2mm 3mm; }
-          body { margin: 0; }
-          * { -webkit-print-color-adjust: exact; }
+          @page {
+            size: 80mm auto;
+            margin: 0 !important;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 80mm !important;
+          }
+          body > *:not([data-ticket-root]) {
+            display: none !important;
+          }
+          [data-ticket-root] {
+            display: block !important;
+            margin: 0 !important;
+            padding: 3mm 3mm !important;
+            width: 100% !important;
+            box-sizing: border-box;
+          }
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
 
@@ -67,7 +84,7 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
         <tbody>
           {items?.map((item, idx) => (
             <tr key={idx}>
-              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>{item.cantidad}</td>
+              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>{Number(item.cantidad)}</td>
               <td style={{ verticalAlign: 'top', padding: '2px 2px 2px 0' }}>
                 {item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}
               </td>
