@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import {
   Search, History, Eye, XCircle, Banknote, Receipt, TrendingDown,
-  TrendingUp, CreditCard, Smartphone, Users, CheckCircle, CalendarDays, Printer, Scale
+  TrendingUp, CreditCard, Smartphone, Users, CheckCircle, CalendarDays, Printer, Scale, RotateCcw
 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import TicketVenta from '../../ventas/components/TicketVenta';
@@ -62,6 +62,14 @@ const MovimientosPage = () => {
   const [abonoData, setAbonoData] = useState(null);
   const [abonoForm, setAbonoForm] = useState({ monto: '', metodo_pago: 'efectivo', nota: '' });
   const [registrandoAbono, setRegistrandoAbono] = useState(false);
+
+  // Devoluciones
+  const [modalDevolucion, setModalDevolucion] = useState(false);
+  const [devVenta, setDevVenta] = useState(null);          // venta sobre la que se hace la devolución
+  const [devItems, setDevItems] = useState([]);             // [{ ...detalleOriginal, cantDevolver }]
+  const [devMotivo, setDevMotivo] = useState('');
+  const [registrandoDev, setRegistrandoDev] = useState(false);
+  const [loadingDev, setLoadingDev] = useState(false);
 
   const notify = useCallback((message, severity = 'success') => setSnackbar({ open: true, message, severity }), []);
 
@@ -160,6 +168,62 @@ const MovimientosPage = () => {
     setAbonoData(venta);
     setAbonoForm({ monto: venta.saldo_pendiente, metodo_pago: 'efectivo', nota: '' });
     setModalAbono(true);
+  };
+
+  const abrirModalDevolucion = async (venta) => {
+    setDevVenta(venta);
+    setDevMotivo('');
+    setLoadingDev(true);
+    setModalDevolucion(true);
+    try {
+      const res = await fetch(`${API_VEN}/${venta.id}`);
+      const data = await res.json();
+      // Cargar ítems con ya_devuelto = 0 por defecto, cantDevolver = 0
+      setDevItems((data.detalle || []).map(d => ({
+        ...d,
+        cantDevolver: 0,
+        ya_devuelto: 0
+      })));
+    } catch {
+      notify('Error al cargar el detalle de la venta', 'error');
+      setModalDevolucion(false);
+    } finally {
+      setLoadingDev(false);
+    }
+  };
+
+  const handleConfirmarDevolucion = async () => {
+    const itemsADevolver = devItems.filter(i => parseFloat(i.cantDevolver) > 0);
+    if (itemsADevolver.length === 0) {
+      return notify('Ingresa al menos 1 unidad a devolver', 'warning');
+    }
+    setRegistrandoDev(true);
+    try {
+      const res = await fetch(`${API_VEN}/${devVenta.id}/devolucion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          motivo: devMotivo || null,
+          items: itemsADevolver.map(i => ({
+            detalle_venta_id: i.id,
+            presentacion_id: i.presentacion_id,
+            cantidad: parseFloat(i.cantDevolver)
+          }))
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        notify(`✓ Devolución registrada — Dev. #${data.devolucion_id}`);
+        setModalDevolucion(false);
+        fetchVentas();
+      } else {
+        notify(data.mensaje || 'Error al registrar la devolución', 'error');
+      }
+    } catch {
+      notify('Error de conexión al registrar devolución', 'error');
+    } finally {
+      setRegistrandoDev(false);
+    }
   };
 
   const registrarAbono = async () => {
@@ -430,6 +494,14 @@ const MovimientosPage = () => {
                               <Eye size={15} />
                             </IconButton>
                           </Tooltip>
+                          {v.estado === 'completada' && (
+                            <Tooltip title="Registrar devolución">
+                              <IconButton size="small" onClick={() => abrirModalDevolucion(v)}
+                                sx={{ color: '#f59e0b', '&:hover': { backgroundColor: 'rgba(245,158,11,0.1)' } }}>
+                                <RotateCcw size={15} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -721,10 +793,142 @@ const MovimientosPage = () => {
         </DialogActions>
       </Dialog>
 
+      {/* ===== Modal de Devolución ===== */}
+      <Dialog
+        open={modalDevolucion}
+        onClose={() => !registrandoDev && setModalDevolucion(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ p: 1, borderRadius: 1.5, backgroundColor: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>
+              <RotateCcw size={20} />
+            </Box>
+            <Box>
+              <Typography variant="h6" fontWeight={700}>Registrar Devolución</Typography>
+              {devVenta && (
+                <Typography variant="caption" color="text.secondary">
+                  Venta #{devVenta.id} — {devVenta.cliente?.trim() || 'Cliente general'}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+          <IconButton size="small" onClick={() => setModalDevolucion(false)} disabled={registrandoDev}>
+            <XCircle size={18} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: '16px !important' }}>
+          {loadingDev ? (
+            <LinearProgress />
+          ) : (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                Indica cuántas unidades devuelve el cliente por cada producto. Deja en <strong>0</strong> los que no se devuelven.
+              </Typography>
+
+              <Table size="small" sx={{ '& th, & td': { borderColor: 'divider' } }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Producto</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>Vendido</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', width: 130 }}>A Devolver</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {devItems.map((item, idx) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>{item.producto}</Typography>
+                        <Typography variant="caption" color="text.secondary">{item.presentacion}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">{Number(item.cantidad)}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          type="number"
+                          size="small"
+                          value={item.cantDevolver}
+                          onChange={e => {
+                            const val = Math.min(
+                              Math.max(0, parseInt(e.target.value, 10) || 0),
+                              Number(item.cantidad)
+                            );
+                            setDevItems(prev => prev.map((it, i) =>
+                              i === idx ? { ...it, cantDevolver: val } : it
+                            ));
+                          }}
+                          inputProps={{ min: 0, max: Number(item.cantidad), style: { textAlign: 'center', padding: '6px 8px', fontWeight: 700 } }}
+                          sx={{
+                            width: 90,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 1.5,
+                              '& fieldset': { borderColor: item.cantDevolver > 0 ? '#f59e0b' : undefined }
+                            }
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {devItems.some(i => i.cantDevolver > 0) && (
+                <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" fontWeight={600} color="#f59e0b">
+                      Total a devolver ({devItems.reduce((a, i) => a + Number(i.cantDevolver), 0)} ítem/s)
+                    </Typography>
+                    <Typography variant="body1" fontWeight={800} color="#f59e0b">
+                      Bs. {formatMonto(devItems.reduce((a, i) => a + Number(i.cantDevolver) * parseFloat(i.precio_unitario), 0))}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
+              <TextField
+                label="Motivo de devolución (opcional)"
+                placeholder="Ej: Producto defectuoso, talla incorrecta..."
+                fullWidth
+                size="small"
+                multiline
+                rows={2}
+                value={devMotivo}
+                onChange={e => setDevMotivo(e.target.value)}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+              />
+            </>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setModalDevolucion(false)} disabled={registrandoDev} color="inherit" sx={{ fontWeight: 600 }}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmarDevolucion}
+            variant="contained"
+            disabled={registrandoDev || loadingDev || !devItems.some(i => i.cantDevolver > 0)}
+            startIcon={<RotateCcw size={18} />}
+            sx={{
+              backgroundColor: '#f59e0b',
+              '&:hover': { backgroundColor: '#d97706' },
+              fontWeight: 700, textTransform: 'none', borderRadius: 1.5, px: 3
+            }}
+          >
+            {registrandoDev ? 'Registrando...' : 'Confirmar Devolución'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>{snackbar.message}</Alert>
       </Snackbar>
     </Box>
+
   );
 };
 
