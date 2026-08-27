@@ -1259,6 +1259,8 @@ const ProveedoresPage = () => {
   const [catalogos, setCatalogos] = useState({ categorias: [], marcas: [], unidades: [] });
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todas');
+  const [filtroProveedor, setFiltroProveedor] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Modales
@@ -1301,10 +1303,30 @@ const ProveedoresPage = () => {
   const onSuccessOrden  = () => { notify('Orden de compra registrada — el stock fue actualizado en el almacén'); fetchAll(); };
   const onSuccessPago   = () => { notify('Pago registrado correctamente'); fetchAll(); };
 
-  const comprasFiltradas = compras.filter(c =>
-    c.proveedor?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    `Pedido #${c.id}`.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const comprasFiltradas = compras.filter(c => {
+    const matchTexto =
+      c.proveedor?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      `Pedido #${c.id}`.toLowerCase().includes(busqueda.toLowerCase());
+    const matchEstado = filtroEstado === 'todas' || c.estado_pago === filtroEstado;
+    const matchProv = !filtroProveedor || c.proveedor === filtroProveedor;
+    return matchTexto && matchEstado && matchProv;
+  });
+
+  const estadosFiltro = [
+    { key: 'todas',     label: 'Todas',      color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
+    { key: 'pendiente', label: 'Pendientes', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+    { key: 'parcial',   label: 'Parciales',  color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+    { key: 'pagado',    label: 'Pagadas',    color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
+  ];
+
+  const conteoEstados = {
+    todas:     compras.length,
+    pendiente: compras.filter(c => c.estado_pago === 'pendiente').length,
+    parcial:   compras.filter(c => c.estado_pago === 'parcial').length,
+    pagado:    compras.filter(c => c.estado_pago === 'pagado').length,
+  };
+
+  const proveedoresEnCompras = [...new Set(compras.map(c => c.proveedor).filter(Boolean))].sort();
 
   const kpiCards = [
     {
@@ -1403,13 +1425,85 @@ const ProveedoresPage = () => {
         {/* TAB 0 — Órdenes de Compra */}
         {tab === 0 && (
           <>
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', gap: 2 }}>
-              <TextField
-                placeholder="Buscar por proveedor o descripción..."
-                size="small" value={busqueda} onChange={e => setBusqueda(e.target.value)}
-                sx={{ flexGrow: 1 }}
-                slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search size={16} color="#9ca3af" /></InputAdornment> } }}
-              />
+            {/* ── Barra de filtros ── */}
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+
+              {/* Chips de estado rápido */}
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mr: 0.5 }}>
+                  Filtrar:
+                </Typography>
+                {estadosFiltro.map(f => {
+                  const activo = filtroEstado === f.key;
+                  return (
+                    <Box
+                      key={f.key}
+                      component="button"
+                      onClick={() => setFiltroEstado(f.key)}
+                      sx={{
+                        cursor: 'pointer',
+                        border: activo ? `2px solid ${f.color}` : '2px solid transparent',
+                        borderRadius: 99,
+                        px: 1.8, py: 0.4,
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: activo ? f.color : 'text.secondary',
+                        bgcolor: activo ? f.bg : 'action.hover',
+                        transition: 'all 0.15s',
+                        display: 'flex', alignItems: 'center', gap: 0.6,
+                        '&:hover': { bgcolor: f.bg, color: f.color },
+                      }}
+                    >
+                      {f.label}
+                      <Box component="span" sx={{
+                        ml: 0.3, px: 0.8, py: 0.1, borderRadius: 99,
+                        bgcolor: activo ? f.color : 'text.disabled',
+                        color: '#fff', fontSize: '0.68rem', fontWeight: 800,
+                        lineHeight: 1.6,
+                      }}>
+                        {conteoEstados[f.key]}
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              {/* Búsqueda de texto + filtro por proveedor */}
+              <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                <TextField
+                  placeholder="Buscar por descripción o # pedido..."
+                  size="small" value={busqueda} onChange={e => setBusqueda(e.target.value)}
+                  sx={{ flexGrow: 1, minWidth: 200 }}
+                  slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search size={16} color="#9ca3af" /></InputAdornment> } }}
+                />
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <Select
+                    value={filtroProveedor}
+                    onChange={e => setFiltroProveedor(e.target.value)}
+                    displayEmpty
+                    startAdornment={<InputAdornment position="start"><Truck size={14} color="#9ca3af" style={{ marginRight: 4 }} /></InputAdornment>}
+                  >
+                    <MenuItem value="">Todos los proveedores</MenuItem>
+                    {proveedoresEnCompras.map(nombre => (
+                      <MenuItem key={nombre} value={nombre}>{nombre}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {(filtroEstado !== 'todas' || busqueda || filtroProveedor) && (
+                  <Button
+                    size="small" variant="text" color="inherit"
+                    onClick={() => { setFiltroEstado('todas'); setBusqueda(''); setFiltroProveedor(''); }}
+                    sx={{ textTransform: 'none', fontSize: '0.78rem', color: 'text.secondary', whiteSpace: 'nowrap' }}
+                  >
+                    Limpiar filtros
+                  </Button>
+                )}
+              </Box>
+
+              {/* Contador de resultados */}
+              <Typography variant="caption" color="text.secondary">
+                Mostrando <strong>{comprasFiltradas.length}</strong> de {compras.length} órdenes
+              </Typography>
             </Box>
             <TableContainer sx={{ maxHeight: 500 }}>
               <Table stickyHeader>
