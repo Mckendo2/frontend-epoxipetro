@@ -9,15 +9,16 @@ const S = {
     backgroundColor: '#fff',
     color: '#000',
     fontFamily: "'Courier New', Courier, monospace",
-    fontSize: '11px',
-    lineHeight: '1.3',
+    fontSize: '12px',
+    lineHeight: '1.4',
+    fontWeight: 'bold',        /* base: todo el ticket en negrita */
   },
   center: { textAlign: 'center' },
   bold: { fontWeight: 'bold' },
-  row: { display: 'flex', justifyContent: 'space-between' },
+  row: { display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' },
   divider: { borderTop: '1px dashed #000', margin: '4px 0' },
-  bigTotal: { fontWeight: 'bold', fontSize: '14px' },
-  small: { fontSize: '10px' },
+  bigTotal: { fontWeight: 'bold', fontSize: '15px' },
+  small: { fontSize: '10px', fontWeight: 'bold' },
   mb2: { marginBottom: '2px' },
   mb4: { marginBottom: '4px' },
   mt4: { marginTop: '4px' },
@@ -68,9 +69,9 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
 
       {/* CABECERA */}
       <div style={{ ...S.center, ...S.mb2 }}>
-        <div style={{ fontWeight: 'bold', fontSize: '13px', letterSpacing: '1px' }}>FERRETERÍA ALVAREZ</div>
-        <div>La Paz, El Alto</div>
-        <div>Cel: +591 65555942</div>
+        <div style={{ fontWeight: 'bold', fontSize: '14px', letterSpacing: '1px' }}>FERRETERÍA ALVAREZ</div>
+        <div style={{ fontWeight: 'bold' }}>La Paz, El Alto</div>
+        <div style={{ fontWeight: 'bold' }}>Cel: +591 65555942</div>
       </div>
 
       <div style={S.divider} />
@@ -78,31 +79,31 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
       {/* DATOS */}
       <div style={S.mb2}>
         <div style={S.bold}>Ticket N°: {ventaInfo?.nro_ticket || '00000001'}</div>
-        <div>Fecha: {ventaInfo?.fecha ? format(new Date(ventaInfo.fecha), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-        <div>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Consumidor Final'}</div>
+        <div style={{ fontWeight: 'bold' }}>Fecha: {ventaInfo?.fecha ? format(new Date(ventaInfo.fecha), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+        <div style={{ fontWeight: 'bold' }}>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Consumidor Final'}</div>
       </div>
 
       <div style={S.divider} />
 
       {/* ITEMS */}
-      <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse', margin: '2px 0' }}>
+      <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse', margin: '2px 0', fontWeight: 'bold' }}>
         <thead>
           <tr style={{ borderBottom: '1px dashed #000' }}>
-            <th style={{ textAlign: 'left', width: '12%', paddingBottom: '2px' }}>Cant</th>
-            <th style={{ textAlign: 'left', width: '48%', paddingBottom: '2px' }}>Descripción</th>
-            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px' }}>P.U.</th>
-            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px' }}>Total</th>
+            <th style={{ textAlign: 'left', width: '12%', paddingBottom: '2px', fontWeight: 'bold' }}>Cant</th>
+            <th style={{ textAlign: 'left', width: '48%', paddingBottom: '2px', fontWeight: 'bold' }}>Descripción</th>
+            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px', fontWeight: 'bold' }}>P.U.</th>
+            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px', fontWeight: 'bold' }}>Total</th>
           </tr>
         </thead>
         <tbody>
           {items?.map((item, idx) => (
             <tr key={idx}>
-              <td style={{ verticalAlign: 'top', padding: '2px 0' }}>{Number(item.cantidad)}</td>
-              <td style={{ verticalAlign: 'top', padding: '2px 2px 2px 0' }}>
+              <td style={{ verticalAlign: 'top', padding: '2px 0', fontWeight: 'bold' }}>{Number(item.cantidad)}</td>
+              <td style={{ verticalAlign: 'top', padding: '2px 2px 2px 0', fontWeight: 'bold' }}>
                 {item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}
               </td>
-              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0' }}>{Number(item.precio_venta).toFixed(2)}</td>
-              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0' }}>{(item.cantidad * item.precio_venta).toFixed(2)}</td>
+              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0', fontWeight: 'bold' }}>{Number(item.precio_venta).toFixed(2)}</td>
+              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0', fontWeight: 'bold' }}>{(item.cantidad * item.precio_venta).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
@@ -112,8 +113,8 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
 
       {/* TOTALES */}
       <div style={S.mb2}>
-        <div style={S.row}><span>SUBTOTAL:</span><span>Bs. {subtotalNeto.toFixed(2)}</span></div>
-        {descuento > 0 && <div style={S.row}><span>DESCUENTO:</span><span>-Bs. {Number(descuento).toFixed(2)}</span></div>}
+        <div style={{ ...S.row, fontWeight: 'bold' }}><span>SUBTOTAL:</span><span>Bs. {subtotalNeto.toFixed(2)}</span></div>
+        {descuento > 0 && <div style={{ ...S.row, fontWeight: 'bold' }}><span>DESCUENTO:</span><span>-Bs. {Number(descuento).toFixed(2)}</span></div>}
         <div style={{ ...S.row, ...S.bigTotal, marginTop: '2px' }}>
           <span>TOTAL:</span><span>Bs. {Number(total).toFixed(2)}</span>
         </div>
@@ -122,7 +123,7 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
       {/* PAGO */}
       {(pagado !== undefined || cambio > 0) && (
         <div style={S.mb2}>
-          {pagado !== undefined && <div style={S.row}><span>Monto Pagado:</span><span>Bs. {Number(pagado).toFixed(2)}</span></div>}
+          {pagado !== undefined && <div style={{ ...S.row, fontWeight: 'bold' }}><span>Monto Pagado:</span><span>Bs. {Number(pagado).toFixed(2)}</span></div>}
           {cambio > 0 && <div style={{ ...S.row, ...S.bold }}><span>CAMBIO:</span><span>Bs. {Number(cambio).toFixed(2)}</span></div>}
         </div>
       )}
@@ -137,8 +138,8 @@ const TicketVenta = forwardRef(({ ventaInfo, cliente, items, total, descuento = 
             size={80}
           />
         </div>
-        <div style={S.small}>Documento no válido como factura fiscal.</div>
-        <div style={S.bold}>¡Gracias por su compra!</div>
+        <div style={{ ...S.small, fontWeight: 'bold' }}>Documento no válido como factura fiscal.</div>
+        <div style={{ ...S.bold, fontSize: '12px' }}>¡Gracias por su compra!</div>
       </div>
     </div>
   );

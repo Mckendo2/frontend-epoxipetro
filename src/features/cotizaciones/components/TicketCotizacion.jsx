@@ -9,15 +9,16 @@ const S = {
     backgroundColor: '#fff',
     color: '#000',
     fontFamily: "'Courier New', Courier, monospace",
-    fontSize: '11px',
-    lineHeight: '1.3',
+    fontSize: '12px',
+    lineHeight: '1.4',
+    fontWeight: 'bold',        /* base: todo el ticket en negrita */
   },
   center: { textAlign: 'center' },
   bold: { fontWeight: 'bold' },
-  row: { display: 'flex', justifyContent: 'space-between' },
+  row: { display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' },
   divider: { borderTop: '1px dashed #000', margin: '4px 0' },
-  bigTotal: { fontWeight: 'bold', fontSize: '13px' },
-  small: { fontSize: '10px' },
+  bigTotal: { fontWeight: 'bold', fontSize: '15px' },
+  small: { fontSize: '10px', fontWeight: 'bold' },
   mb2: { marginBottom: '2px' },
 };
 
@@ -67,9 +68,9 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
 
       {/* CABECERA */}
       <div style={{ ...S.center, ...S.mb2 }}>
-        <div style={{ fontWeight: 'bold', fontSize: '13px', letterSpacing: '1px' }}>FERRETERÍA ALVAREZ</div>
-        <div>La Paz, El Alto</div>
-        <div>Cel: +591 65555942</div>
+        <div style={{ fontWeight: 'bold', fontSize: '14px', letterSpacing: '1px' }}>FERRETERÍA ALVAREZ</div>
+        <div style={{ fontWeight: 'bold' }}>La Paz, El Alto</div>
+        <div style={{ fontWeight: 'bold' }}>Cel: +591 65555942</div>
         <div style={{ ...S.bold, marginTop: '3px' }}>COTIZACIÓN / PRE-VENTA</div>
       </div>
 
@@ -77,9 +78,9 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
 
       {/* INFO */}
       <div style={S.mb2}>
-        <div>Nro: {cotizacionInfo?.id}</div>
-        <div>Fecha: {new Date(cotizacionInfo?.fecha || Date.now()).toLocaleString('es-BO')}</div>
-        <div>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'General'}</div>
+        <div style={{ fontWeight: 'bold' }}>Nro: {cotizacionInfo?.id}</div>
+        <div style={{ fontWeight: 'bold' }}>Fecha: {new Date(cotizacionInfo?.fecha || Date.now()).toLocaleString('es-BO')}</div>
+        <div style={{ fontWeight: 'bold' }}>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'General'}</div>
       </div>
 
       <div style={S.divider} />
@@ -94,8 +95,8 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
       {/* ITEMS */}
       {items?.map((item, index) => (
         <div key={index} style={{ marginBottom: '3px' }}>
-          <div>{item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}</div>
-          <div style={S.row}>
+          <div style={{ fontWeight: 'bold' }}>{item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}</div>
+          <div style={{ ...S.row, fontWeight: 'bold' }}>
             <span style={{ width: '50%' }}>{item.cantidad}</span>
             <span style={{ width: '25%', textAlign: 'right' }}>{formatMonto(item.precio_venta)}</span>
             <span style={{ width: '25%', textAlign: 'right' }}>{formatMonto(item.cantidad * item.precio_venta)}</span>
@@ -110,7 +111,7 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
         <div style={{ ...S.row, ...S.bigTotal }}>
           <span>TOTAL:</span><span>Bs. {formatMonto(total)}</span>
         </div>
-        <div style={S.row}>
+        <div style={{ ...S.row, fontWeight: 'bold' }}>
           <span>A Cuenta / Adelanto:</span><span>Bs. {formatMonto(adelanto)}</span>
         </div>
         <div style={{ ...S.row, ...S.bold }}>
@@ -122,7 +123,7 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
 
       {/* PIE */}
       <div style={S.center}>
-        <div>¡Gracias por su preferencia!</div>
+        <div style={{ fontWeight: 'bold' }}>¡Gracias por su preferencia!</div>
         <div style={S.small}>Este documento es una cotización y no es válido como factura.</div>
       </div>
     </div>
