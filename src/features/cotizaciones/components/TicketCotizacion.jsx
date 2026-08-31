@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
-
-const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
+import { QRCodeSVG } from 'qrcode.react';
+import { format } from 'date-fns';
 
 const S = {
   root: {
@@ -11,7 +11,7 @@ const S = {
     fontFamily: "'Courier New', Courier, monospace",
     fontSize: '12px',
     lineHeight: '1.4',
-    fontWeight: 'bold',        /* base: todo el ticket en negrita */
+    fontWeight: 'bold',
   },
   center: { textAlign: 'center' },
   bold: { fontWeight: 'bold' },
@@ -20,11 +20,15 @@ const S = {
   bigTotal: { fontWeight: 'bold', fontSize: '15px' },
   small: { fontSize: '10px', fontWeight: 'bold' },
   mb2: { marginBottom: '2px' },
+  mb4: { marginBottom: '4px' },
+  mt4: { marginTop: '4px' },
 };
 
 const TicketCotizacion = forwardRef(({ data }, ref) => {
   if (!data) return null;
-  const { cotizacionInfo, cliente, items, total, adelanto, saldo } = data;
+  const { cotizacionInfo, cliente, items, total, adelanto = 0, saldo = 0, descuento = 0 } = data;
+
+  const subtotalNeto = total + descuento;
 
   return (
     <div ref={ref} style={S.root} data-ticket-root>
@@ -71,60 +75,72 @@ const TicketCotizacion = forwardRef(({ data }, ref) => {
         <div style={{ fontWeight: 'bold', fontSize: '14px', letterSpacing: '1px' }}>FERRETERÍA ALVAREZ</div>
         <div style={{ fontWeight: 'bold' }}>La Paz, El Alto</div>
         <div style={{ fontWeight: 'bold' }}>Cel: +591 65555942</div>
-        <div style={{ ...S.bold, marginTop: '3px' }}>COTIZACIÓN / PRE-VENTA</div>
       </div>
 
       <div style={S.divider} />
 
-      {/* INFO */}
+      {/* DATOS */}
       <div style={S.mb2}>
-        <div style={{ fontWeight: 'bold' }}>Nro: {cotizacionInfo?.id}</div>
-        <div style={{ fontWeight: 'bold' }}>Fecha: {new Date(cotizacionInfo?.fecha || Date.now()).toLocaleString('es-BO')}</div>
-        <div style={{ fontWeight: 'bold' }}>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'General'}</div>
+        <div style={S.bold}>Cotización N°: {cotizacionInfo?.id || '00000001'}</div>
+        <div style={{ fontWeight: 'bold' }}>Fecha: {cotizacionInfo?.fecha ? format(new Date(cotizacionInfo.fecha), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+        <div style={{ fontWeight: 'bold' }}>Cliente: {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Consumidor Final'}</div>
       </div>
 
       <div style={S.divider} />
-
-      {/* ITEMS HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '2px' }}>
-        <span style={{ width: '50%' }}>Cant. x Prod.</span>
-        <span style={{ width: '25%', textAlign: 'right' }}>P.U.</span>
-        <span style={{ width: '25%', textAlign: 'right' }}>SubT</span>
-      </div>
 
       {/* ITEMS */}
-      {items?.map((item, index) => (
-        <div key={index} style={{ marginBottom: '3px' }}>
-          <div style={{ fontWeight: 'bold' }}>{item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}</div>
-          <div style={{ ...S.row, fontWeight: 'bold' }}>
-            <span style={{ width: '50%' }}>{item.cantidad}</span>
-            <span style={{ width: '25%', textAlign: 'right' }}>{formatMonto(item.precio_venta)}</span>
-            <span style={{ width: '25%', textAlign: 'right' }}>{formatMonto(item.cantidad * item.precio_venta)}</span>
-          </div>
-        </div>
-      ))}
+      <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse', margin: '2px 0', fontWeight: 'bold' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px dashed #000' }}>
+            <th style={{ textAlign: 'left', width: '12%', paddingBottom: '2px', fontWeight: 'bold' }}>Cant</th>
+            <th style={{ textAlign: 'left', width: '48%', paddingBottom: '2px', fontWeight: 'bold' }}>Descripción</th>
+            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px', fontWeight: 'bold' }}>P.U.</th>
+            <th style={{ textAlign: 'right', width: '20%', paddingBottom: '2px', fontWeight: 'bold' }}>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items?.map((item, idx) => (
+            <tr key={idx}>
+              <td style={{ verticalAlign: 'top', padding: '2px 0', fontWeight: 'bold' }}>{Number(item.cantidad)}</td>
+              <td style={{ verticalAlign: 'top', padding: '2px 2px 2px 0', fontWeight: 'bold' }}>
+                {item.producto}{item.nombre && item.nombre !== 'Unidad' ? ` - ${item.nombre}` : ''}
+              </td>
+              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0', fontWeight: 'bold' }}>{Number(item.precio_venta).toFixed(2)}</td>
+              <td style={{ verticalAlign: 'top', textAlign: 'right', padding: '2px 0', fontWeight: 'bold' }}>{(item.cantidad * item.precio_venta).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <div style={S.divider} />
 
       {/* TOTALES */}
-      <div>
-        <div style={{ ...S.row, ...S.bigTotal }}>
-          <span>TOTAL:</span><span>Bs. {formatMonto(total)}</span>
+      <div style={S.mb2}>
+        <div style={{ ...S.row, fontWeight: 'bold' }}><span>SUBTOTAL:</span><span>Bs. {subtotalNeto.toFixed(2)}</span></div>
+        {descuento > 0 && <div style={{ ...S.row, fontWeight: 'bold' }}><span>DESCUENTO:</span><span>-Bs. {Number(descuento).toFixed(2)}</span></div>}
+        <div style={{ ...S.row, ...S.bigTotal, marginTop: '2px' }}>
+          <span>TOTAL:</span><span>Bs. {Number(total).toFixed(2)}</span>
         </div>
-        <div style={{ ...S.row, fontWeight: 'bold' }}>
-          <span>A Cuenta / Adelanto:</span><span>Bs. {formatMonto(adelanto)}</span>
-        </div>
-        <div style={{ ...S.row, ...S.bold }}>
-          <span>SALDO POR PAGAR:</span><span>Bs. {formatMonto(saldo)}</span>
-        </div>
+      </div>
+
+      {/* ADELANTO / SALDO — exclusivo de cotización */}
+      <div style={S.mb2}>
+        <div style={{ ...S.row, fontWeight: 'bold' }}><span>A Cuenta / Adelanto:</span><span>Bs. {Number(adelanto).toFixed(2)}</span></div>
+        <div style={{ ...S.row, ...S.bold }}><span>SALDO POR PAGAR:</span><span>Bs. {Number(saldo).toFixed(2)}</span></div>
       </div>
 
       <div style={S.divider} />
 
       {/* PIE */}
-      <div style={S.center}>
-        <div style={{ fontWeight: 'bold' }}>¡Gracias por su preferencia!</div>
-        <div style={S.small}>Este documento es una cotización y no es válido como factura.</div>
+      <div style={{ ...S.center, marginTop: '4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
+          <QRCodeSVG
+            value={`Cotización: ${cotizacionInfo?.id || '000001'} | Total: Bs. ${Number(total).toFixed(2)} | FERRETERÍA ALVAREZ`}
+            size={80}
+          />
+        </div>
+        <div style={{ ...S.small, fontWeight: 'bold' }}>Este documento es una cotización y no es válido como factura fiscal.</div>
+        <div style={{ ...S.bold, fontSize: '12px' }}>¡Gracias por su preferencia!</div>
       </div>
     </div>
   );
