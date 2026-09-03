@@ -460,14 +460,18 @@ const MovimientosPage = () => {
                           </Typography>
                         </TableCell>
                         <TableCell><Typography variant="body2">{v.cliente?.trim() || 'Cliente general'}</Typography></TableCell>
-                        <TableCell><Chip label={`${v.cantidad_items} ítem(s)`} size="small" sx={{ backgroundColor: 'action.hover', color: 'text.secondary', fontSize: '0.7rem' }} /></TableCell>
+                        <TableCell>
+                          <Chip label={`${v.cantidad_items} ítem(s)`} size="small" sx={{ backgroundColor: 'action.hover', color: 'text.secondary', fontSize: '0.7rem' }} />
+                          {Number(v.items_devueltos) > 0 && <Chip label={`-${v.items_devueltos} dev.`} size="small" sx={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444', fontSize: '0.65rem', ml: 0.5 }} />}
+                        </TableCell>
                         <TableCell>
                           <Chip label={METODOS_PAGO.find(m => m.value === v.metodo_pago)?.label || v.metodo_pago} size="small"
                             sx={{ backgroundColor: `${METODO_COLOR[v.metodo_pago]}20`, color: METODO_COLOR[v.metodo_pago], fontWeight: 600, fontSize: '0.7rem' }} />
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" fontWeight={700}>Bs. {formatMonto(v.total)}</Typography>
-                          {parseFloat(v.descuento) > 0 && <Typography variant="caption" color="error.main">-Bs. {formatMonto(v.descuento)}</Typography>}
+                          {Number(v.monto_devuelto) > 0 && <Typography variant="caption" color="error.main" sx={{ display: 'block', lineHeight: 1.2 }}>Neto (Dev. -Bs. {formatMonto(v.monto_devuelto)})</Typography>}
+                          {parseFloat(v.descuento) > 0 && <Typography variant="caption" color="error.main" sx={{ display: 'block', lineHeight: 1.2 }}>-Bs. {formatMonto(v.descuento)}</Typography>}
                         </TableCell>
                         <TableCell>
                           <Chip label={v.estado} size="small" sx={{
@@ -689,17 +693,51 @@ const MovimientosPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {ventaDetalle.detalle?.map(d => (
-                    <TableRow key={d.id}>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={600}>{d.producto}</Typography>
-                        <Typography variant="caption" color="text.secondary">{d.presentacion}</Typography>
-                      </TableCell>
-                      <TableCell align="right">{Number(d.cantidad)}</TableCell>
-                      <TableCell align="right">{formatMonto(d.precio_unitario)}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 700 }}>{formatMonto(d.subtotal)}</TableCell>
+                  {ventaDetalle.detalle?.map(d => {
+                    const devuelto = Number(d.ya_devuelto || 0);
+                    const cantidadNeta = Number(d.cantidad) - devuelto;
+                    const esDevueltoParcial = devuelto > 0;
+                    return (
+                      <TableRow key={d.id}>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={600}>{d.producto}</Typography>
+                          <Typography variant="caption" color="text.secondary">{d.presentacion}</Typography>
+                          {esDevueltoParcial && (
+                            <Typography variant="caption" color="error.main" sx={{ display: 'block' }}>
+                              Devuelto: {devuelto}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          {esDevueltoParcial ? (
+                            <>
+                              <Typography component="span" sx={{ textDecoration: 'line-through', color: 'text.disabled', mr: 1, fontSize: '0.8rem' }}>
+                                {Number(d.cantidad)}
+                              </Typography>
+                              {cantidadNeta}
+                            </>
+                          ) : Number(d.cantidad)}
+                        </TableCell>
+                        <TableCell align="right">{formatMonto(d.precio_unitario)}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>
+                          {esDevueltoParcial ? (
+                            <>
+                              <Typography component="span" sx={{ textDecoration: 'line-through', color: 'text.disabled', mr: 1, fontSize: '0.8rem' }}>
+                                {formatMonto(d.subtotal)}
+                              </Typography>
+                              {formatMonto(cantidadNeta * Number(d.precio_unitario))}
+                            </>
+                          ) : formatMonto(d.subtotal)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {parseFloat(ventaDetalle.monto_devuelto) > 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} align="right" sx={{ color: 'error.main', fontWeight: 600 }}>Total Devuelto</TableCell>
+                      <TableCell align="right" sx={{ color: 'error.main', fontWeight: 600 }}>- {formatMonto(ventaDetalle.monto_devuelto)}</TableCell>
                     </TableRow>
-                  ))}
+                  )}
                   {parseFloat(ventaDetalle.descuento) > 0 && (
                     <TableRow>
                       <TableCell colSpan={3} align="right" sx={{ color: 'error.main', fontWeight: 600 }}>Descuento</TableCell>
