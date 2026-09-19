@@ -292,10 +292,25 @@ const VentasPage = () => {
           cambio: cambioConfirmado > 0 ? cambioConfirmado : 0
         });
 
+        // ── Actualización optimista ──────────────────────────────────────────
+        // Descuenta el stock localmente de inmediato para que la UI refleje
+        // la venta al instante, sin esperar el round-trip de fetchData().
+        setStock(prev => {
+          const next = prev
+            .map(item => {
+              const vendido = carrito.find(c => c.id === item.id);
+              if (!vendido) return item;
+              return { ...item, stock_tienda: item.stock_tienda - vendido.cantidad };
+            })
+            .filter(item => item.stock_tienda > 0); // ocultar agotados
+          return next;
+        });
+        // ────────────────────────────────────────────────────────────────────
+
         setModalCambio(false);
         setCheckoutMode(false);
         limpiarCarrito();
-        fetchData(); // Actualizar stock
+        fetchData(); // Sincroniza con el servidor en segundo plano
 
         // Mostrar el modal del ticket
         setModalTicket(true);

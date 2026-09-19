@@ -530,7 +530,6 @@ const InventarioPage = () => {
                                   <TableRow key={pr.id} sx={{ '& td': { borderColor: 'divider' } }}>
                                     <TableCell>
                                       <Typography variant="body2" fontWeight={500} color="text.primary">{pr.nombre}</Typography>
-                                      <Typography variant="caption" color="text.secondary">{pr.unidad}</Typography>
                                     </TableCell>
                                     <TableCell>
                                       {pr.codigo_barras ? (
@@ -558,12 +557,12 @@ const InventarioPage = () => {
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                         {stockBajoAlerta && <AlertTriangle size={14} color="#ef4444" />}
                                         <Typography variant="body2" fontWeight={600} color={stockBajoAlerta ? 'error.main' : 'text.primary'}>
-                                          {pr.stock_tienda} {pr.unidad}
+                                          {pr.stock_tienda}
                                         </Typography>
                                       </Box>
                                     </TableCell>
                                     <TableCell>
-                                      <Typography variant="body2" color="text.secondary">{pr.stock_almacen} {pr.unidad}</Typography>
+                                      <Typography variant="body2" color="text.secondary">{pr.stock_almacen}</Typography>
                                     </TableCell>
                                     <TableCell sx={{ textAlign: 'right' }}>
                                       <Tooltip title="Trasladar a Tienda">
@@ -702,20 +701,9 @@ const InventarioPage = () => {
       <Dialog open={modalEditarPresentacion} onClose={() => setModalEditarPresentacion(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Editar Presentación</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '24px !important' }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Nombre de la Presentación</Typography>
-              <TextField placeholder="Ej. 1 kg / KIT 20 kg" value={formEditarPresentacion.nombre} onChange={e => setFormEditarPresentacion({ ...formEditarPresentacion, nombre: e.target.value })} fullWidth size="small" />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Unidad de Medida</Typography>
-              <FormControl fullWidth size="small">
-                <Select value={formEditarPresentacion.unidad_medida_id} onChange={e => setFormEditarPresentacion({ ...formEditarPresentacion, unidad_medida_id: e.target.value })} displayEmpty>
-                  <MenuItem value=""><em>Selecciona</em></MenuItem>
-                  {catalogos.unidades.map(u => <MenuItem key={u.id} value={u.id}>{u.nombre}</MenuItem>)}
-                </Select>
-              </FormControl>
-            </Box>
+          <Box>
+            <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Nombre de la Presentación</Typography>
+            <TextField placeholder="Ej. 1 kg / KIT 20 kg" value={formEditarPresentacion.nombre} onChange={e => setFormEditarPresentacion({ ...formEditarPresentacion, nombre: e.target.value })} fullWidth size="small" />
           </Box>
           <Box>
             <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>Código de Barras / QR</Typography>
