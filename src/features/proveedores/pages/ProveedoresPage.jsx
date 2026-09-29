@@ -19,6 +19,14 @@ const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/pr
 
 const formatMonto = (v) => Number(parseFloat(v || 0).toFixed(2)).toLocaleString('de-DE');
 
+// Fetch con timeout para evitar que se quede colgado con internet lento
+const fetchConTimeout = (url, opciones = {}, ms = 15000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...opciones, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+};
+
 const estadoChip = (estado) => {
   const map = {
     pendiente: { label: 'Pendiente', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
@@ -232,14 +240,22 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
         }
       });
 
-      const res = await fetch(`${API}/compras`, {
+      const res = await fetchConTimeout(`${API}/compras`, {
         method: 'POST',
         body: formData
       });
-      if (res.ok) { onSuccess(); onClose(); }
-      else {
-        const err = await res.json();
+      if (res.ok) {
+        onClose();
+        onSuccess();
+      } else {
+        const err = await res.json().catch(() => ({}));
         alert(err.mensaje || 'Error al registrar la orden');
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        alert('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.');
+      } else {
+        alert('Error de conexión. Verifica tu internet e intenta de nuevo.');
       }
     } finally {
       setLoading(false);
@@ -597,12 +613,25 @@ const ModalPago = ({ open, onClose, onSuccess, compra }) => {
     if (!form.monto || parseFloat(form.monto) <= 0) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API}/compras/${compra.id}/pagar`, {
+      const res = await fetchConTimeout(`${API}/compras/${compra.id}/pagar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, monto: parseFloat(form.monto) })
       });
-      if (res.ok) { onSuccess(); onClose(); }
+      if (res.ok) {
+        const data = await res.json();
+        onClose();
+        onSuccess(data);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.mensaje || 'Error al registrar el pago');
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        alert('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.');
+      } else {
+        alert('Error de conexión. Verifica tu internet e intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -728,7 +757,7 @@ const ModalRecepcion = ({ open, onClose, onSuccess, compra }) => {
     if (!itemsValidos.length) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API}/compras/${compra.id}/recepcion`, {
+      const res = await fetchConTimeout(`${API}/compras/${compra.id}/recepcion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -742,8 +771,18 @@ const ModalRecepcion = ({ open, onClose, onSuccess, compra }) => {
         })
       });
       const data = await res.json();
-      if (res.ok) { onSuccess(data.mensaje); onClose(); }
-      else alert(data.mensaje || 'Error al registrar la recepción');
+      if (res.ok) {
+        onClose();
+        onSuccess(data.mensaje);
+      } else {
+        alert(data.mensaje || 'Error al registrar la recepción');
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        alert('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.');
+      } else {
+        alert('Error de conexión. Verifica tu internet e intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -1142,25 +1181,29 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/compras/${compra.id}/devolucion`, {
+      const res = await fetchConTimeout(`${API}/compras/${compra.id}/devolucion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ items: validItems })
       });
       if (res.ok) {
         const data = await res.json();
+        onClose();
         if (data.eliminada) {
           onSuccess('✅ Devolución total registrada. La orden de compra fue eliminada automáticamente.');
         } else {
           onSuccess('Devolución registrada exitosamente');
         }
-        onClose();
       } else {
-        const err = await res.json();
-        alert(err.mensaje);
+        const err = await res.json().catch(() => ({}));
+        alert(err.mensaje || 'Error al registrar la devolución');
       }
-    } catch {
-      alert('Error de conexión');
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        alert('La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.');
+      } else {
+        alert('Error de conexión. Verifica tu internet e intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -1301,7 +1344,25 @@ const ProveedoresPage = () => {
 
   const onSuccessProv   = () => { notify('Proveedor guardado correctamente'); fetchAll(); };
   const onSuccessOrden  = () => { notify('Orden de compra registrada — el stock fue actualizado en el almacén'); fetchAll(); };
-  const onSuccessPago   = () => { notify('Pago registrado correctamente'); fetchAll(); };
+  const onSuccessPago   = (dataPago) => {
+    // Actualización optimista: reflejar el pago en la UI de inmediato
+    if (dataPago && compraSeleccionada) {
+      setCompras(prev => prev.map(c => {
+        if (c.id !== compraSeleccionada.id) return c;
+        const nuevoMontoPagado = dataPago.total_pagado ?? c.monto_pagado;
+        const nuevoSaldo = Math.max(0, c.monto - nuevoMontoPagado);
+        return {
+          ...c,
+          estado_pago: dataPago.estado || c.estado_pago,
+          monto_pagado: nuevoMontoPagado,
+          saldo_pendiente: nuevoSaldo,
+        };
+      }));
+    }
+    notify('Pago registrado correctamente');
+    // Recargar datos en segundo plano (no bloquea la UI)
+    fetchAll();
+  };
 
   const comprasFiltradas = compras.filter(c => {
     const matchTexto =
