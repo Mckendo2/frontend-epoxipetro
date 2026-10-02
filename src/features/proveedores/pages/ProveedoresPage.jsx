@@ -10,7 +10,7 @@ import {
 import {
   Truck, Plus, Search, Edit2, DollarSign, AlertCircle,
   CheckCircle, Clock, Building2, Phone, Mail, MapPin,
-  CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet,
+  CreditCard, FileText, Hash, TrendingDown, Receipt, Wallet, QrCode,
   ShoppingCart, Package, Barcode, Trash2, Tag, Undo2, Eye, PlusCircle
 } from 'lucide-react';
 
@@ -1612,10 +1612,10 @@ const ProveedoresPage = () => {
                       <TableCell>
                         {(() => {
                           const tipoMap = {
-                            credito:  { label: 'Crédito',  color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', icon: '🕐' },
-                            contado:  { label: 'Contado',  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', icon: '💵' },
-                            efectivo: { label: 'Efectivo', color: '#10b981', bg: 'rgba(16,185,129,0.12)', icon: '💰' },
-                            qr:       { label: 'QR',       color: '#ec4899', bg: 'rgba(236,72,153,0.12)', icon: '📱' },
+                            credito:  { label: 'Crédito',  color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', Icon: Clock },
+                            contado:  { label: 'Contado',  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', Icon: CreditCard },
+                            efectivo: { label: 'Efectivo', color: '#10b981', bg: 'rgba(16,185,129,0.12)', Icon: DollarSign },
+                            qr:       { label: 'QR',       color: '#ec4899', bg: 'rgba(236,72,153,0.12)', Icon: QrCode },
                           };
                           const t = tipoMap[c.tipo_pago] || tipoMap.credito;
                           return (
@@ -1624,7 +1624,7 @@ const ProveedoresPage = () => {
                               color: t.color, backgroundColor: t.bg, display: 'inline-flex',
                               alignItems: 'center', gap: 0.5, whiteSpace: 'nowrap'
                             }}>
-                              <span style={{ fontSize: '0.85rem' }}>{t.icon}</span> {t.label}
+                              <t.Icon size={13} /> {t.label}
                             </Box>
                           );
                         })()}
