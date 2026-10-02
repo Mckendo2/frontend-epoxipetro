@@ -304,6 +304,8 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                 onChange={e => setForm(f => ({ ...f, tipo_pago: e.target.value }))}>
                 <MenuItem value="credito">A Crédito</MenuItem>
                 <MenuItem value="contado">Contado</MenuItem>
+                <MenuItem value="efectivo">Efectivo</MenuItem>
+                <MenuItem value="qr">QR</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -659,6 +661,7 @@ const ModalPago = ({ open, onClose, onSuccess, compra }) => {
           <FormControl fullWidth size="small">
             <Select value={form.metodo_pago} onChange={e => setForm({ ...form, metodo_pago: e.target.value })}>
               <MenuItem value="efectivo">Efectivo</MenuItem>
+              <MenuItem value="qr">QR</MenuItem>
               <MenuItem value="transferencia">Transferencia</MenuItem>
               <MenuItem value="cheque">Cheque</MenuItem>
               <MenuItem value="otro">Otro</MenuItem>
@@ -1570,15 +1573,15 @@ const ProveedoresPage = () => {
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    {['Proveedor', 'Descripción', 'Monto Total', 'Pagado', 'Saldo Pendiente', 'Estado', 'Vencimiento', 'Acciones'].map(h => (
-                      <TableCell key={h} sx={{ bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700, fontSize: '0.8rem' }}>{h}</TableCell>
+                    {['Fecha', 'Proveedor', 'Descripción', 'Tipo Pago', 'Monto Total', 'Pagado', 'Saldo Pendiente', 'Estado', 'Vencimiento', 'Acciones'].map(h => (
+                      <TableCell key={h} sx={{ bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{h}</TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {comprasFiltradas.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} align="center" sx={{ py: 5 }}>
+                      <TableCell colSpan={10} align="center" sx={{ py: 5 }}>
                         <ShoppingCart size={36} color="#6b7280" style={{ marginBottom: 8, opacity: 0.4 }} />
                         <Typography color="text.secondary">No hay órdenes de compra registradas</Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -1589,12 +1592,42 @@ const ProveedoresPage = () => {
                   ) : comprasFiltradas.map(c => (
                     <TableRow hover key={c.id} sx={{ '& td': { borderBottom: 1, borderColor: 'divider' } }}>
                       <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight={700} color="text.primary" sx={{ whiteSpace: 'nowrap' }}>
+                            {new Date(c.created_at).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </Typography>
+                          <Typography variant="caption" color="text.disabled" sx={{ whiteSpace: 'nowrap' }}>
+                            {new Date(c.created_at).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
                         <Typography variant="body2" fontWeight={600} color="text.primary">{c.proveedor}</Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200 }}>
                           {c.descripcion || `Pedido #${c.id}`}
                         </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const tipoMap = {
+                            credito:  { label: 'Crédito',  color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', icon: '🕐' },
+                            contado:  { label: 'Contado',  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', icon: '💵' },
+                            efectivo: { label: 'Efectivo', color: '#10b981', bg: 'rgba(16,185,129,0.12)', icon: '💰' },
+                            qr:       { label: 'QR',       color: '#ec4899', bg: 'rgba(236,72,153,0.12)', icon: '📱' },
+                          };
+                          const t = tipoMap[c.tipo_pago] || tipoMap.credito;
+                          return (
+                            <Box component="span" sx={{
+                              px: 1.5, py: 0.4, borderRadius: 99, fontSize: '0.73rem', fontWeight: 700,
+                              color: t.color, backgroundColor: t.bg, display: 'inline-flex',
+                              alignItems: 'center', gap: 0.5, whiteSpace: 'nowrap'
+                            }}>
+                              <span style={{ fontSize: '0.85rem' }}>{t.icon}</span> {t.label}
+                            </Box>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight={600}>Bs. {formatMonto(c.monto)}</Typography>
