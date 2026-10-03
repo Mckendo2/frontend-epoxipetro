@@ -35,6 +35,7 @@ const getLocalDateString = (d) => {
 const MovimientosPage = () => {
   const [tabIndex, setTabIndex] = useState(0); // 0 = Ingresos (Ventas), 1 = Egresos (Gastos), 2 = Por Cobrar
   const [ventas, setVentas] = useState([]);
+  const [ventasCredito, setVentasCredito] = useState([]); // todas las deudas pendientes (sin filtro de fecha)
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -73,17 +74,52 @@ const MovimientosPage = () => {
 
   const notify = useCallback((message, severity = 'success') => setSnackbar({ open: true, message, severity }), []);
 
+  // Calcula el rango de fechas real basado en el filtro seleccionado
+  const calcularRangoFechas = useCallback(() => {
+    const [rY, rM, rD] = fechaInicio.split('-').map(Number);
+
+    if (rangoFecha === 'personalizado') {
+      return { desde: fechaInicio, hasta: fechaFin };
+    }
+    if (rangoFecha === 'diario') {
+      return { desde: fechaInicio, hasta: fechaInicio };
+    }
+    if (rangoFecha === 'mensual') {
+      const primerDia = `${rY}-${String(rM).padStart(2, '0')}-01`;
+      const ultimoDia = new Date(rY, rM, 0).getDate();
+      const hasta = `${rY}-${String(rM).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+      return { desde: primerDia, hasta };
+    }
+    if (rangoFecha === 'anual') {
+      return { desde: `${rY}-01-01`, hasta: `${rY}-12-31` };
+    }
+    if (rangoFecha === 'semanal') {
+      const ref = new Date(rY, rM - 1, rD);
+      const day = ref.getDay();
+      const diff = ref.getDate() - day + (day === 0 ? -6 : 1);
+      const startOfWeek = new Date(rY, rM - 1, diff);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      return { desde: getLocalDateString(startOfWeek), hasta: getLocalDateString(endOfWeek) };
+    }
+    return {};
+  }, [rangoFecha, fechaInicio, fechaFin]);
+
   const fetchVentas = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_VEN}/?limite=100`);
+      const { desde, hasta } = calcularRangoFechas();
+      const params = new URLSearchParams({ limite: '500' });
+      if (desde) params.set('desde', desde);
+      if (hasta) params.set('hasta', hasta);
+      const res = await fetch(`${API_VEN}/?${params}`);
       setVentas(await res.json());
     } catch {
       notify('Error al cargar historial de ventas', 'error');
     } finally {
       setLoading(false);
     }
-  }, [notify]);
+  }, [notify, calcularRangoFechas]);
 
   const fetchGastos = useCallback(async () => {
     setLoading(true);
@@ -97,10 +133,25 @@ const MovimientosPage = () => {
     }
   }, [notify]);
 
+  // Carga todas las ventas a crédito pendientes SIN filtro de fecha (para la pestaña Por Cobrar)
+  const fetchVentasCredito = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_VEN}/?limite=1000`);
+      const data = await res.json();
+      setVentasCredito(data.filter(v => v.tipo_venta === 'credito' && v.estado_pago === 'pendiente'));
+    } catch {
+      // silencioso — no bloquear la UI principal
+    }
+  }, []);
+
   useEffect(() => {
     fetchVentas();
+  }, [fetchVentas]);
+
+  useEffect(() => {
     fetchGastos();
-  }, [fetchVentas, fetchGastos]);
+    fetchVentasCredito();
+  }, [fetchGastos, fetchVentasCredito]);
 
   const verDetalle = async (id) => {
     setLoadingDetalle(true);
@@ -154,6 +205,7 @@ const MovimientosPage = () => {
         notify(`Venta #${id} anulada y stock revertido`);
         setModalDetalle(false);
         fetchVentas();
+        fetchVentasCredito();
       } else {
         notify(data.mensaje, 'error');
       }
@@ -216,6 +268,7 @@ const MovimientosPage = () => {
         notify(`✓ Devolución registrada — Dev. #${data.devolucion_id}`);
         setModalDevolucion(false);
         fetchVentas();
+        fetchVentasCredito();
       } else {
         notify(data.mensaje || 'Error al registrar la devolución', 'error');
       }
@@ -242,6 +295,7 @@ const MovimientosPage = () => {
         notify(`Abono registrado exitosamente`);
         setModalAbono(false);
         fetchVentas();
+        fetchVentasCredito();
       } else {
         notify(data.mensaje, 'error');
       }
@@ -292,7 +346,7 @@ const MovimientosPage = () => {
     return true;
   };
 
-  const ventasRango = ventas.filter(v => cumpleRango(v.created_at));
+  const ventasRango = ventas; // ya vienen filtradas del backend
   const gastosRango = gastos.filter(g => cumpleRango(g.fecha));
 
   const ventasFiltradas = ventasRango.filter(v =>
@@ -602,9 +656,9 @@ const MovimientosPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {ventas.filter(v => v.tipo_venta === 'credito' && v.estado_pago === 'pendiente' && (
+                  {ventasCredito.filter(v =>
                     String(v.id).includes(busqueda) || (v.cliente || '').toLowerCase().includes(busqueda.toLowerCase())
-                  )).length === 0 && !loading ? (
+                  ).length === 0 && !loading ? (
                     <TableRow>
                       <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
@@ -613,9 +667,9 @@ const MovimientosPage = () => {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ) : ventas.filter(v => v.tipo_venta === 'credito' && v.estado_pago === 'pendiente' && (
+                  ) : ventasCredito.filter(v =>
                     String(v.id).includes(busqueda) || (v.cliente || '').toLowerCase().includes(busqueda.toLowerCase())
-                  )).map(v => {
+                  ).map(v => {
                     const fecha = new Date(v.created_at);
                     return (
                       <TableRow key={v.id} hover sx={{ '& td': { borderColor: 'divider' } }}>
