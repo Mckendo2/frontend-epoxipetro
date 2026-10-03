@@ -252,17 +252,13 @@ const MovimientosPage = () => {
     }
   };
 
-  const cumpleRango = (fechaStr, esGasto = false) => {
+  const cumpleRango = (fechaStr) => {
     if (!fechaStr) return false;
-    let dY, dM, dD;
-    if (esGasto) {
-      // Las fechas de gastos son "YYYY-MM-DD" — parsear como local para evitar desfase UTC
-      const [y, mo, day] = fechaStr.split('T')[0].split('-').map(Number);
-      dY = y; dM = mo - 1; dD = day;
-    } else {
-      const parsed = new Date(fechaStr);
-      dY = parsed.getFullYear(); dM = parsed.getMonth(); dD = parsed.getDate();
-    }
+    // Extraer año, mes, día como números locales (evita desfase UTC)
+    // Para fechas ISO ("2026-09-24T12:00:00.000Z") y YYYY-MM-DD por igual
+    const isoDate = fechaStr.split('T')[0]; // "2026-09-24"
+    const [dY, dMraw, dD] = isoDate.split('-').map(Number);
+    const dM = dMraw - 1; // 0-indexed
 
     // Objeto Date unificado (local) para comparaciones de rango
     const date = new Date(dY, dM, dD);
@@ -297,7 +293,7 @@ const MovimientosPage = () => {
   };
 
   const ventasRango = ventas.filter(v => cumpleRango(v.created_at));
-  const gastosRango = gastos.filter(g => cumpleRango(g.fecha, true));
+  const gastosRango = gastos.filter(g => cumpleRango(g.fecha));
 
   const ventasFiltradas = ventasRango.filter(v =>
     String(v.id).includes(busqueda) ||
