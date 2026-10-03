@@ -30,8 +30,8 @@ const fetchConTimeout = (url, opciones = {}, ms = 15000) => {
 const estadoChip = (estado) => {
   const map = {
     pendiente: { label: 'Pendiente', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-    parcial:   { label: 'Parcial',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-    pagado:    { label: 'Pagado',    color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
+    parcial: { label: 'Parcial', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+    pagado: { label: 'Pagado', color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
   };
   const s = map[estado] || map.pendiente;
   return (
@@ -54,7 +54,7 @@ const ModalProveedor = ({ open, onClose, onSuccess, proveedorEdit }) => {
   useEffect(() => {
     if (proveedorEdit) setForm({ ...inicial, ...proveedorEdit });
     else setForm(inicial);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proveedorEdit, open]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -64,8 +64,8 @@ const ModalProveedor = ({ open, onClose, onSuccess, proveedorEdit }) => {
     setLoading(true);
     try {
       const method = proveedorEdit ? 'PUT' : 'POST';
-      const url    = proveedorEdit ? `${API}/${proveedorEdit.id}` : API;
-      const res    = await fetch(url, {
+      const url = proveedorEdit ? `${API}/${proveedorEdit.id}` : API;
+      const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -77,12 +77,12 @@ const ModalProveedor = ({ open, onClose, onSuccess, proveedorEdit }) => {
   };
 
   const fields = [
-    { name: 'nombre',    label: 'Nombre / Empresa *', icon: <Building2 size={16} />, required: true },
-    { name: 'contacto',  label: 'Persona de Contacto', icon: <FileText size={16} /> },
-    { name: 'telefono',  label: 'Teléfono',            icon: <Phone size={16} /> },
-    { name: 'correo',    label: 'Correo',              icon: <Mail size={16} /> },
-    { name: 'direccion', label: 'Dirección',           icon: <MapPin size={16} /> },
-    { name: 'ruc_nit',   label: 'RUC / NIT',           icon: <Hash size={16} /> },
+    { name: 'nombre', label: 'Nombre / Empresa *', icon: <Building2 size={16} />, required: true },
+    { name: 'contacto', label: 'Persona de Contacto', icon: <FileText size={16} /> },
+    { name: 'telefono', label: 'Teléfono', icon: <Phone size={16} /> },
+    { name: 'correo', label: 'Correo', icon: <Mail size={16} /> },
+    { name: 'direccion', label: 'Dirección', icon: <MapPin size={16} /> },
+    { name: 'ruc_nit', label: 'RUC / NIT', icon: <Hash size={16} /> },
   ];
 
   return (
@@ -145,7 +145,7 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
     nota: '',
     imagen: null,
   });
-  const [items, setItems]     = useState([itemVacio()]);
+  const [items, setItems] = useState([itemVacio()]);
   const [loading, setLoading] = useState(false);
   const [busquedaMap, setBusquedaMap] = useState({}); // { _key: string }
   const [opcionesMap, setOpcionesMap] = useState({});  // { _key: [] }
@@ -183,9 +183,11 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
     if (!opcion) return;
     setItems(prev => prev.map(it =>
       it._key === key
-        ? { ...it, presentacion_id: opcion.id, label: opcion.label,
-            precio_compra: opcion.precio_compra || '',
-            precio_venta: opcion.precio_venta || '' }
+        ? {
+          ...it, presentacion_id: opcion.id, label: opcion.label,
+          precio_compra: opcion.precio_compra || '',
+          precio_venta: opcion.precio_venta || ''
+        }
         : it
     ));
   };
@@ -233,7 +235,7 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
 
       const formData = new FormData();
       formData.append('datos', JSON.stringify(payload));
-      
+
       itemsValidos.forEach((it, idx) => {
         if (it.modo === 'nuevo' && it.imagen_file) {
           formData.append(`imagen_item_${idx}`, it.imagen_file);
@@ -474,8 +476,8 @@ const ModalOrdenCompra = ({ open, onClose, onSuccess, proveedores, catalogos }) 
                       <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                         Foto del producto (opcional)
                       </Typography>
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         accept="image/*"
                         capture="environment"
                         onChange={e => actualizarItem(item._key, 'imagen_file', e.target.files[0])}
@@ -735,9 +737,11 @@ const ModalRecepcion = ({ open, onClose, onSuccess, compra }) => {
     if (!opcion) return;
     setItems(prev => prev.map(it =>
       it._key === key
-        ? { ...it, presentacion_id: opcion.id, label: opcion.label,
-            precio_compra: opcion.precio_compra || '',
-            precio_venta: opcion.precio_venta || '' }
+        ? {
+          ...it, presentacion_id: opcion.id, label: opcion.label,
+          precio_compra: opcion.precio_compra || '',
+          precio_venta: opcion.precio_venta || ''
+        }
         : it
     ));
   };
@@ -1039,8 +1043,8 @@ const ModalDetallesCompra = ({ open, onClose, compra }) => {
                     // Extraer nota del ítem desde el campo "nota" del movimiento
                     const notaItem = it.nota
                       ? it.nota.replace(/^Orden de compra #\d+\s*-?\s*/i, '')
-                             .replace(/^Recepción adicional — Orden de compra #\d+\s*-?\s*/i, '')
-                             .trim()
+                        .replace(/^Recepción adicional — Orden de compra #\d+\s*-?\s*/i, '')
+                        .trim()
                       : '';
                     return (
                       <TableRow key={i} hover>
@@ -1094,7 +1098,7 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
   const itemVacio = () => ({ _key: Date.now().toString() + Math.random(), presentacion_id: '', nombreProd: '', cantidad: '', precio_compra: '', nota: '' });
   const [items, setItems] = useState([itemVacio()]);
   const [loading, setLoading] = useState(false);
-  
+
   const [busquedaMap, setBusquedaMap] = useState({});
   const [opcionesMap, setOpcionesMap] = useState({});
   const [cargandoMap, setCargandoMap] = useState({});
@@ -1280,7 +1284,7 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
             <Button size="small" startIcon={<Plus size={16} />} onClick={() => setItems([...items, itemVacio()])} sx={{ textTransform: 'none' }}>Agregar Producto</Button>
           </Box>
         </Box>
-        
+
         <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(239, 68, 68, 0.08)', display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant="body1" fontWeight={600} color="error">Total a descontar de la compra:</Typography>
           <Typography variant="h6" fontWeight={700} color="error">Bs. {formatMonto(totalDevolucion)}</Typography>
@@ -1345,9 +1349,9 @@ const ProveedoresPage = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const onSuccessProv   = () => { notify('Proveedor guardado correctamente'); fetchAll(); };
-  const onSuccessOrden  = () => { notify('Orden de compra registrada — el stock fue actualizado en el almacén'); fetchAll(); };
-  const onSuccessPago   = (dataPago) => {
+  const onSuccessProv = () => { notify('Proveedor guardado correctamente'); fetchAll(); };
+  const onSuccessOrden = () => { notify('Orden de compra registrada — el stock fue actualizado en el almacén'); fetchAll(); };
+  const onSuccessPago = (dataPago) => {
     // Actualización optimista: reflejar el pago en la UI de inmediato
     if (dataPago && compraSeleccionada) {
       setCompras(prev => prev.map(c => {
@@ -1377,17 +1381,17 @@ const ProveedoresPage = () => {
   });
 
   const estadosFiltro = [
-    { key: 'todas',     label: 'Todas',      color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
+    { key: 'todas', label: 'Todas', color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
     { key: 'pendiente', label: 'Pendientes', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-    { key: 'parcial',   label: 'Parciales',  color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-    { key: 'pagado',    label: 'Pagadas',    color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
+    { key: 'parcial', label: 'Parciales', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+    { key: 'pagado', label: 'Pagadas', color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
   ];
 
   const conteoEstados = {
-    todas:     compras.length,
+    todas: compras.length,
     pendiente: compras.filter(c => c.estado_pago === 'pendiente').length,
-    parcial:   compras.filter(c => c.estado_pago === 'parcial').length,
-    pagado:    compras.filter(c => c.estado_pago === 'pagado').length,
+    parcial: compras.filter(c => c.estado_pago === 'parcial').length,
+    pagado: compras.filter(c => c.estado_pago === 'pagado').length,
   };
 
   const proveedoresEnCompras = [...new Set(compras.map(c => c.proveedor).filter(Boolean))].sort();
@@ -1458,8 +1462,10 @@ const ProveedoresPage = () => {
             <Card sx={{ borderRadius: 3, background: k.gradient, border: k.border, position: 'relative', overflow: 'hidden' }}>
               <CardContent sx={{ p: '24px !important' }}>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
-                  <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: `${k.color}22`, color: k.color,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box sx={{
+                    p: 1.5, borderRadius: 2, bgcolor: `${k.color}22`, color: k.color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
                     {k.icon}
                   </Box>
                 </Box>
@@ -1573,7 +1579,7 @@ const ProveedoresPage = () => {
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    {['Fecha', 'Proveedor', 'Descripción', 'Tipo Pago', 'Monto Total', 'Pagado', 'Saldo Pendiente', 'Estado', 'Vencimiento', 'Acciones'].map(h => (
+                    {['Fecha', 'Proveedor', 'Descripción', 'Tipo Pago', 'Monto Total', 'Pagado', 'Último Pago', 'Saldo Pendiente', 'Estado', 'Vencimiento', 'Acciones'].map(h => (
                       <TableCell key={h} sx={{ bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{h}</TableCell>
                     ))}
                   </TableRow>
@@ -1581,7 +1587,7 @@ const ProveedoresPage = () => {
                 <TableBody>
                   {comprasFiltradas.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} align="center" sx={{ py: 5 }}>
+                      <TableCell colSpan={11} align="center" sx={{ py: 5 }}>
                         <ShoppingCart size={36} color="#6b7280" style={{ marginBottom: 8, opacity: 0.4 }} />
                         <Typography color="text.secondary">No hay órdenes de compra registradas</Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -1612,10 +1618,10 @@ const ProveedoresPage = () => {
                       <TableCell>
                         {(() => {
                           const tipoMap = {
-                            credito:  { label: 'Crédito',  color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', Icon: Clock },
-                            contado:  { label: 'Contado',  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', Icon: CreditCard },
+                            credito: { label: 'Crédito', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', Icon: Clock },
+                            contado: { label: 'Contado', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', Icon: CreditCard },
                             efectivo: { label: 'Efectivo', color: '#10b981', bg: 'rgba(16,185,129,0.12)', Icon: DollarSign },
-                            qr:       { label: 'QR',       color: '#ec4899', bg: 'rgba(236,72,153,0.12)', Icon: QrCode },
+                            qr: { label: 'QR', color: '#ec4899', bg: 'rgba(236,72,153,0.12)', Icon: QrCode },
                           };
                           const t = tipoMap[c.tipo_pago] || tipoMap.credito;
                           return (
@@ -1634,6 +1640,20 @@ const ProveedoresPage = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="success.main">Bs. {formatMonto(c.monto_pagado)}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        {c.ultimo_pago ? (
+                          <Box>
+                            <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ whiteSpace: 'nowrap' }}>
+                              {new Date(c.ultimo_pago).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </Typography>
+                            <Typography variant="caption" color="text.disabled" sx={{ whiteSpace: 'nowrap' }}>
+                              {new Date(c.ultimo_pago).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.disabled">—</Typography>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="error.main" fontWeight={700}>

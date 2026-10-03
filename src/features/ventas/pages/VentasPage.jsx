@@ -68,6 +68,7 @@ const VentasPage = () => {
   });
   const [procesando, setProcesando] = useState(false);
   const [tipoVenta, setTipoVenta] = useState('contado');
+  const [fechaVenta, setFechaVenta] = useState(getLocalDateString(new Date()));
 
   const [modalCliente, setModalCliente] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({ nombre: '', apellido: '', telefono: '', correo: '', direccion: '' });
@@ -233,6 +234,7 @@ const VentasPage = () => {
     setMetodoPago('efectivo');
     setTipoVenta('contado');
     setDescuento('');
+    setFechaVenta(getLocalDateString(new Date()));
   };
 
   const subtotal = carrito.reduce((acc, i) => acc + parseFloat(i.precio_venta) * i.cantidad, 0);
@@ -271,7 +273,8 @@ const VentasPage = () => {
             presentacion_id: item.id,
             cantidad: item.cantidad,
             precio_unitario: item.precio_venta
-          }))
+          })),
+          fecha: fechaVenta || null
         })
       });
       const data = await res.json();
@@ -600,8 +603,10 @@ const VentasPage = () => {
 
                 <Box>
                   <Typography variant="body2" fontWeight={600} mb={1.5} color={colorText}>Fecha de la venta *</Typography>
-                  <TextField size="medium" fullWidth value={new Date().toLocaleDateString('es-BO', { day: 'numeric', month: 'short', year: 'numeric' })} disabled 
-                    sx={{ '& .MuiInputBase-root': { borderRadius: 1.5, backgroundColor: 'background.default' } }}
+                  <TextField size="medium" fullWidth type="date"
+                    value={fechaVenta}
+                    onChange={e => setFechaVenta(e.target.value)}
+                    sx={{ '& .MuiInputBase-root': { borderRadius: 1.5 } }}
                   />
                 </Box>
 
