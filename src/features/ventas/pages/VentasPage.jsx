@@ -274,7 +274,9 @@ const VentasPage = () => {
             cantidad: item.cantidad,
             precio_unitario: item.precio_venta
           })),
-          fecha: fechaVenta || null
+          // Solo enviar fecha si es una entrada retroactiva (diferente a hoy).
+          // Si es hoy, enviamos null para que el backend use new Date() con la hora real.
+          fecha: (fechaVenta && fechaVenta !== getLocalDateString(new Date())) ? fechaVenta : null
         })
       });
       const data = await res.json();
