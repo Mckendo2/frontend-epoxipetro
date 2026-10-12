@@ -1300,6 +1300,65 @@ const ModalDevolucionCompra = ({ open, onClose, onSuccess, compra }) => {
   );
 };
 
+// ─── MODAL ELIMINAR COMPRA ─────────────────────────────────────────────────────────
+const ModalEliminarCompra = ({ open, onClose, onSuccess, compra }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleEliminar = async () => {
+    setLoading(true);
+    try {
+      const res = await fetchConTimeout(`${API}/compras/${compra.id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        onClose();
+        onSuccess(data.mensaje || 'Orden de compra eliminada');
+      } else {
+        alert(data.mensaje || 'Error al eliminar la compra');
+      }
+    } catch (e) {
+      alert(e.name === 'AbortError'
+        ? 'La conexión tardó demasiado. Verifica tu internet e intenta de nuevo.'
+        : 'Error de conexión. Verifica tu internet e intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!compra) return null;
+
+  return (
+    <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+      <DialogTitle sx={{ fontWeight: 800 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(239,68,68,0.12)', color: '#ef4444', display: 'flex' }}>
+            <Trash2 size={20} />
+          </Box>
+          Eliminar Pedido #{compra.id}
+        </Box>
+      </DialogTitle>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          <Typography variant="body2" color="text.secondary">{compra.proveedor}</Typography>
+          <Typography variant="body2" fontWeight={600}>{compra.descripcion || `Pedido #${compra.id}`}</Typography>
+          <Typography variant="h6" fontWeight={700} color="error.main">Bs. {formatMonto(compra.monto)}</Typography>
+        </Box>
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          Usa esta opción solo si la compra se registró <strong>por error</strong>. Se quitará del inventario el
+          stock que ingresó con este pedido y se borrarán sus pagos y devoluciones. Esta acción no se puede deshacer.
+        </Alert>
+      </DialogContent>
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button onClick={onClose} disabled={loading} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
+        <Button onClick={handleEliminar} disabled={loading} variant="contained" color="error"
+          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <Trash2 size={16} />}
+          sx={{ textTransform: 'none', fontWeight: 700 }}>
+          {loading ? 'Eliminando…' : 'Eliminar compra'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const ProveedoresPage = () => {
   const [tab, setTab] = useState(0);
   const [kpis, setKpis] = useState({ deuda_total: 0, compras_pendientes: 0, proveedores_activos: 0 });
@@ -1321,6 +1380,7 @@ const ProveedoresPage = () => {
   const [modalDevolucion, setModalDevolucion] = useState(false);
   const [modalDetalles, setModalDetalles] = useState(false);
   const [modalRecepcion, setModalRecepcion] = useState(false);
+  const [modalEliminar, setModalEliminar] = useState(false);
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
 
   const notify = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
@@ -1691,6 +1751,11 @@ const ProveedoresPage = () => {
                               <PlusCircle size={18} />
                             </IconButton>
                           </Tooltip>
+                          <Tooltip title="Eliminar compra (registrada por error)">
+                            <IconButton size="small" onClick={() => { setCompraSeleccionada(c); setModalEliminar(true); }} sx={{ color: '#ef4444' }}>
+                              <Trash2 size={18} />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -1812,8 +1877,10 @@ const ProveedoresPage = () => {
         onSuccess={onSuccessPago} compra={compraSeleccionada} />
       <ModalDevolucionCompra open={modalDevolucion} onClose={() => { setModalDevolucion(false); setCompraSeleccionada(null); }}
         onSuccess={(msg) => { notify(msg); fetchAll(); }} compra={compraSeleccionada} />
-
-
+      <ModalEliminarCompra open={modalEliminar}
+        onClose={() => { setModalEliminar(false); setCompraSeleccionada(null); }}
+        onSuccess={(msg) => { notify(msg); fetchAll(); }}
+        compra={compraSeleccionada} />
 
       <ModalDetallesCompra open={modalDetalles} onClose={() => setModalDetalles(false)} compra={compraSeleccionada} />
       <ModalRecepcion open={modalRecepcion}
