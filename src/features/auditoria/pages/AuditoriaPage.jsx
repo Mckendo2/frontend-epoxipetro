@@ -5,9 +5,23 @@ import {
   IconButton, Pagination, Tooltip, Dialog, DialogTitle, DialogContent
 } from '@mui/material';
 import { Activity, Calendar, Shield, Info } from 'lucide-react';
-import { format } from 'date-fns';
 
 const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/auditoria';
+
+// Formato 'yyyy-MM-dd HH:mm' en hora de Bolivia (La Paz)
+const fmtBolivia = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/La_Paz',
+  year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+});
+const formatFechaBolivia = (log) => {
+  const fecha = log.created_at_unix != null
+    ? new Date(Number(log.created_at_unix) * 1000)
+    : new Date(log.created_at);
+  if (isNaN(fecha)) return '-';
+  const p = Object.fromEntries(fmtBolivia.formatToParts(fecha).map(({ type, value }) => [type, value]));
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+};
 
 const AuditoriaPage = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -198,7 +212,7 @@ const AuditoriaPage = () => {
               const mColor = getMethodColor(log.metodo);
               return (
                 <TableRow key={log.id} hover>
-                  <TableCell>{format(new Date(log.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
+                  <TableCell>{formatFechaBolivia(log)}</TableCell>
                   <TableCell>
                     <Box sx={{ 
                       bgcolor: mColor.bg, color: mColor.color, 
