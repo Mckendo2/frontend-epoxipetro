@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
-  { text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/', permiso: 'view_dashboard' },
+  { text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard', permiso: 'view_dashboard' },
   { text: 'Almacén Central', icon: <Warehouse size={20} />, path: '/almacen', permiso: 'manage_inventario' },
   { text: 'Catálogos', icon: <Bookmark size={20} />, path: '/catalogos', permiso: 'manage_inventario' },
   { text: 'Tienda/Sucursal', icon: <Store size={20} />, path: '/tienda', permiso: 'manage_inventario' },

@@ -19,6 +19,7 @@ import ReportesPage from './features/reportes/pages/ReportesPage';
 import CatalogoPublicoPage from './features/catalogo/pages/CatalogoPublicoPage';
 import ProveedoresPage from './features/proveedores/pages/ProveedoresPage';
 import PerfilPage from './features/perfil/pages/PerfilPage';
+import LandingPage from './features/landing/pages/LandingPage';
 
 const ProtectedRoute = ({ children, permisoRequerido }) => {
   const { isAuthenticated, hasPermission } = useAuth();
@@ -29,10 +30,17 @@ const ProtectedRoute = ({ children, permisoRequerido }) => {
   
   if (permisoRequerido && !hasPermission(permisoRequerido)) {
     // Si está autenticado pero no tiene el permiso, lo enviamos al dashboard
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   return children;
+};
+
+// Si el visitante no está autenticado, / muestra la landing comercial.
+// Si ya inició sesión como personal, lo redirige al dashboard del sistema.
+const RootRoute = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
 };
 
 function App() {
@@ -41,25 +49,30 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
+            {/* Rutas Públicas */}
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/inicio" element={<LandingPage />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/catalogo" element={<CatalogoPublicoPage />} />
-            <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            <Route index element={<DashboardPage />} />
-            <Route path="usuarios" element={<ProtectedRoute permisoRequerido="manage_usuarios"><UsersPage /></ProtectedRoute>} />
-            <Route path="roles" element={<ProtectedRoute permisoRequerido="manage_roles"><RolesPage /></ProtectedRoute>} />
-            <Route path="permisos" element={<ProtectedRoute permisoRequerido="manage_permisos"><PermisosPage /></ProtectedRoute>} />
-            <Route path="clientes" element={<ProtectedRoute permisoRequerido="manage_clientes"><ClientesPage /></ProtectedRoute>} />
-            <Route path="almacen" element={<ProtectedRoute permisoRequerido="manage_inventario"><InventarioPage /></ProtectedRoute>} />
-            <Route path="tienda" element={<ProtectedRoute permisoRequerido="manage_inventario"><TiendaPage /></ProtectedRoute>} />
-            <Route path="catalogos" element={<ProtectedRoute permisoRequerido="manage_inventario"><CatalogosPage /></ProtectedRoute>} />
-            <Route path="cotizaciones" element={<ProtectedRoute permisoRequerido="manage_cotizaciones"><CotizacionesPage /></ProtectedRoute>} />
-            <Route path="ventas" element={<ProtectedRoute permisoRequerido="manage_ventas"><VentasPage /></ProtectedRoute>} />
-            <Route path="movimientos" element={<ProtectedRoute permisoRequerido="manage_caja"><MovimientosPage /></ProtectedRoute>} />
-            <Route path="auditoria" element={<ProtectedRoute permisoRequerido="view_auditoria"><AuditoriaPage /></ProtectedRoute>} />
-            <Route path="reportes" element={<ProtectedRoute permisoRequerido="view_reportes"><ReportesPage /></ProtectedRoute>} />
-            <Route path="proveedores" element={<ProtectedRoute permisoRequerido="manage_proveedores"><ProveedoresPage /></ProtectedRoute>} />
-            <Route path="perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
-            {/* Otras rutas irán aquí */}
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* Rutas protegidas del Sistema ERP */}
+            <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="usuarios" element={<ProtectedRoute permisoRequerido="manage_usuarios"><UsersPage /></ProtectedRoute>} />
+              <Route path="roles" element={<ProtectedRoute permisoRequerido="manage_roles"><RolesPage /></ProtectedRoute>} />
+              <Route path="permisos" element={<ProtectedRoute permisoRequerido="manage_permisos"><PermisosPage /></ProtectedRoute>} />
+              <Route path="clientes" element={<ProtectedRoute permisoRequerido="manage_clientes"><ClientesPage /></ProtectedRoute>} />
+              <Route path="almacen" element={<ProtectedRoute permisoRequerido="manage_inventario"><InventarioPage /></ProtectedRoute>} />
+              <Route path="tienda" element={<ProtectedRoute permisoRequerido="manage_inventario"><TiendaPage /></ProtectedRoute>} />
+              <Route path="catalogos" element={<ProtectedRoute permisoRequerido="manage_inventario"><CatalogosPage /></ProtectedRoute>} />
+              <Route path="cotizaciones" element={<ProtectedRoute permisoRequerido="manage_cotizaciones"><CotizacionesPage /></ProtectedRoute>} />
+              <Route path="ventas" element={<ProtectedRoute permisoRequerido="manage_ventas"><VentasPage /></ProtectedRoute>} />
+              <Route path="movimientos" element={<ProtectedRoute permisoRequerido="manage_caja"><MovimientosPage /></ProtectedRoute>} />
+              <Route path="auditoria" element={<ProtectedRoute permisoRequerido="view_auditoria"><AuditoriaPage /></ProtectedRoute>} />
+              <Route path="reportes" element={<ProtectedRoute permisoRequerido="view_reportes"><ReportesPage /></ProtectedRoute>} />
+              <Route path="proveedores" element={<ProtectedRoute permisoRequerido="manage_proveedores"><ProveedoresPage /></ProtectedRoute>} />
+              <Route path="perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
             </Route>
           </Routes>
         </Router>

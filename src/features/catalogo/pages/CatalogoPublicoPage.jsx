@@ -4,8 +4,9 @@ import {
   Drawer, TextField, CircularProgress, Snackbar, Alert, Divider
 } from '@mui/material';
 import { ShoppingCart, Plus, Minus, X, Package, MessageCircle } from 'lucide-react';
+import { getApiBaseUrl } from '../../../config/api';
 
-const API = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api/public';
+const API = `${getApiBaseUrl()}/api/public`;
 const WHATSAPP_NUMBER = '59165555942'; // Número proporcionado por el usuario
 
 const formatMonto = (monto) => Number(parseFloat(monto || 0).toFixed(2)).toLocaleString('de-DE');
@@ -200,7 +201,7 @@ const CatalogoPublicoPage = () => {
                 {carrito.map(item => (
                   <Box key={item.id} sx={{ display: 'flex', gap: 2, alignItems: 'center', pb: 2, borderBottom: 1, borderColor: 'divider' }}>
                     <Box sx={{ width: 60, height: 60, borderRadius: 2, overflow: 'hidden', bgcolor: '#f3f4f6', flexShrink: 0 }}>
-                      {item.imagen_url ? <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${item.imagen_url}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={30} color="#9ca3af" style={{ margin: '15px' }} />}
+                      {item.imagen_url ? <img src={`${getApiBaseUrl()}${item.imagen_url}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={30} color="#9ca3af" style={{ margin: '15px' }} />}
                     </Box>
                     <Box sx={{ flexGrow: 1 }}>
                       <Typography variant="body2" fontWeight={700}>{item.producto_nombre}</Typography>
