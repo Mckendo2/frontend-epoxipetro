@@ -4,7 +4,7 @@ import { siteConfig } from '../data/siteConfig';
 import { useLandingCart } from '../context/LandingCartContext';
 
 const navLinks = [
-  { label: 'Productos y Almacén', href: '#productos' },
+  { label: 'Productos', href: '#productos' },
   { label: 'Ventajas', href: '#ventajas' },
   { label: 'Cómo comprar', href: '#proceso' },
   { label: 'Preguntas', href: '#faq' },

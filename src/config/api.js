@@ -24,22 +24,12 @@ export const getApiBaseUrl = () => {
 export const API_BASE_URL = getApiBaseUrl();
 
 /**
- * Resuelve la URL de la imagen del producto.
- * Si es null o no existe, retorna una imagen temática de alta resolución de la categoría.
+ * Resuelve la URL de la imagen del producto cargada en el servidor.
+ * Si no tiene imagen, retorna null para mostrar el placeholder limpio de icono.
  */
-export const getCategoryFallbackImage = (categoria = '') => {
-  const cat = (categoria || '').toLowerCase();
-  if (cat.includes('chapa') || cat.includes('cerradura')) return '/landing/chapas.png';
-  if (cat.includes('candado')) return '/landing/candados.png';
-  if (cat.includes('resina')) return '/landing/resinas.png';
-  if (cat.includes('electr')) return '/landing/electricos.png';
-  if (cat.includes('broca') || cat.includes('herramienta') || cat.includes('disco')) return '/landing/insumos.png';
-  return '/landing/insumos.png';
-};
-
-export const getProductImageUrl = (imagen_url, categoria) => {
-  if (!imagen_url) {
-    return getCategoryFallbackImage(categoria);
+export const getProductImageUrl = (imagen_url) => {
+  if (!imagen_url || typeof imagen_url !== 'string' || imagen_url.trim() === '') {
+    return null;
   }
   if (imagen_url.startsWith('http://') || imagen_url.startsWith('https://')) {
     return imagen_url;

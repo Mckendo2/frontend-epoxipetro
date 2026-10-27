@@ -4,9 +4,6 @@ import {
   ShoppingCart,
   Plus,
   Minus,
-  Check,
-  Store,
-  Warehouse,
   Package,
   Layers,
   ArrowRight,
@@ -43,32 +40,27 @@ export default function Products() {
         return res.json();
       })
       .then((data) => {
-        // Aplanar los productos con su primera o única presentación
         const flattened = data
-          .filter((p) => p.nombre && !p.nombre.includes('Nombre *')) // filtrar registros de prueba si existen
+          .filter((p) => p.nombre && !p.nombre.includes('Nombre *'))
           .map((p) => {
             const pres = p.presentaciones?.[0] || {
               id: `p-${p.id}`,
               nombre: 'Unidad',
               precio_venta: 0,
-              stock_tienda: 0,
               stock_almacen: 0,
               stock_total: 0,
             };
 
-            const stockTienda = Number(pres.stock_tienda || 0);
-            const stockAlmacen = Number(pres.stock_almacen || 0);
-            const totalStock = pres.stock_total ?? (stockTienda + stockAlmacen);
+            // Solo tomamos en cuenta lo disponible en almacén para el cliente
+            const stockDisponible = Number(pres.stock_almacen ?? pres.stock_total ?? 0);
 
             return {
               ...p,
               presentation: {
                 ...pres,
-                stock_tienda: stockTienda,
-                stock_almacen: stockAlmacen,
-                stock_total: totalStock,
+                stock_disponible: stockDisponible,
               },
-              totalStock,
+              totalStock: stockDisponible,
             };
           });
 
@@ -127,17 +119,17 @@ export default function Products() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-edge bg-raised px-3 py-1 text-xs font-semibold text-brass">
               <Layers size={14} />
-              <span>Inventario en tiempo real sincronizado ({products.length} artículos)</span>
+              <span>Inventario en tiempo real ({products.length} artículos)</span>
             </div>
             <h2
               className="mt-3 text-3xl font-extrabold tracking-tight text-body sm:text-4xl lg:text-5xl"
               style={{ textWrap: 'balance' }}
             >
-              Materiales disponibles en Tienda y Almacén
+              Catálogo de Materiales en Stock
             </h2>
             <p className="mt-3 max-w-2xl text-base text-muted" style={{ textWrap: 'pretty' }}>
-              Explora cerraduras, resinas y accesorios con stock real. Suma lo que necesitas a tu
-              cotización y recíbelo coordinado por WhatsApp.
+              Explora cerraduras, resinas y herramientas con disponibilidad real. Suma lo que
+              necesitas a tu cotización y recíbelo coordinado por WhatsApp.
             </p>
           </div>
 
@@ -214,7 +206,7 @@ export default function Products() {
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <div
                 key={n}
-                className="h-80 animate-pulse rounded-xl border border-edge bg-panel/60 p-5"
+                className="h-72 animate-pulse rounded-xl border border-edge bg-panel/60 p-5"
               />
             ))}
           </div>
@@ -245,8 +237,9 @@ export default function Products() {
                 const pres = p.presentation;
                 const cartItem = cart.find((i) => i.id === pres.id);
                 const inCartQty = cartItem?.cantidad || 0;
-                const isMaxStock = pres.stock_total > 0 && inCartQty >= pres.stock_total;
-                const imgUrl = getProductImageUrl(p.imagen_url, p.categoria);
+                const stockDisp = pres.stock_disponible || 0;
+                const isMaxStock = stockDisp > 0 && inCartQty >= stockDisp;
+                const realImageUrl = getProductImageUrl(p.imagen_url);
 
                 return (
                   <div
@@ -257,18 +250,28 @@ export default function Products() {
                         : 'border-edge bg-panel hover:border-edge/80 hover:bg-panel/90'
                     }`}
                   >
-                    {/* Top image container */}
+                    {/* Top image or clean placeholder container */}
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-canvas">
-                      <img
-                        src={imgUrl}
-                        alt={p.nombre}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        onError={(e) => {
-                          e.target.src = '/landing/insumos.png';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-panel via-transparent to-transparent opacity-80" />
+                      {realImageUrl ? (
+                        <img
+                          src={realImageUrl}
+                          alt={p.nombre}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        /* Sin imagen IA genérica: Icon placeholder limpio y elegante */
+                        <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-panel via-raised/40 to-panel p-6 text-center">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-edge bg-canvas text-brass/70 shadow-sm transition-colors group-hover:border-brass/40 group-hover:text-brass">
+                            <Package size={24} />
+                          </div>
+                          <span className="mt-2 text-[10px] font-medium text-muted">
+                            {p.categoria || 'Material'}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-panel/60 via-transparent to-transparent pointer-events-none" />
 
                       {/* Brand Pill */}
                       {p.marca && (
@@ -279,7 +282,7 @@ export default function Products() {
 
                       {/* Category Label */}
                       {p.categoria && (
-                        <span className="absolute right-3 top-3 rounded bg-panel/90 px-2 py-0.5 text-[10px] font-medium text-muted backdrop-blur-sm">
+                        <span className="absolute right-3 top-3 rounded bg-panel/90 px-2 py-0.5 text-[10px] font-medium text-muted backdrop-blur-sm border border-edge/60">
                           {p.categoria}
                         </span>
                       )}
@@ -295,23 +298,19 @@ export default function Products() {
                         <p className="mt-1 text-xs text-muted line-clamp-1">{p.descripcion}</p>
                       )}
 
-                      {/* Stock Availability Dual Badges */}
-                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                        {pres.stock_tienda > 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-                            <Store size={12} className="text-emerald-400" />
-                            <span>Tienda: {pres.stock_tienda}</span>
+                      {/* Stock Availability: Solo lo disponible de almacén, sin mostrar tienda */}
+                      <div className="mt-3 flex items-center">
+                        {stockDisp > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 rounded bg-emerald-950/60 border border-emerald-700/50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>
+                              Disponible: {stockDisp} {pres.unidad || 'unid.'}
+                            </span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded bg-panel border border-edge px-1.5 py-0.5 text-[10px] text-muted">
-                            Sin stock en tienda
-                          </span>
-                        )}
-
-                        {pres.stock_almacen > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded bg-blue-950/60 border border-blue-700/50 px-2 py-0.5 text-[11px] font-medium text-blue-300">
-                            <Warehouse size={12} className="text-blue-400" />
-                            <span>Almacén: {pres.stock_almacen}</span>
+                          <span className="inline-flex items-center gap-1.5 rounded bg-panel border border-edge px-2 py-0.5 text-[10px] font-medium text-muted">
+                            <span className="h-1.5 w-1.5 rounded-full bg-muted/60" />
+                            <span>Consultar disponibilidad</span>
                           </span>
                         )}
                       </div>
@@ -386,21 +385,21 @@ export default function Products() {
           </>
         )}
 
-        {/* Almacén & Mayorista Capability Banner */}
+        {/* Capacidad Mayorista Banner */}
         <div className="mt-16 rounded-2xl border border-edge bg-gradient-to-r from-panel via-raised to-panel p-8 lg:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 text-brass text-sm font-bold uppercase tracking-wider">
-                <Warehouse size={18} />
-                <span>Capacidad de Almacén Central Alvarez</span>
+                <Package size={18} />
+                <span>Capacidad de Abastecimiento Mayorista</span>
               </div>
               <h3 className="mt-2 text-2xl font-bold text-body sm:text-3xl">
                 ¿Abasteces una obra, taller de carpintería o cerrajería?
               </h3>
               <p className="mt-2 text-sm text-muted leading-relaxed">
-                Disponemos de stock por volumen de cerraduras de seguridad, candados blindados,
-                resinas epóxicas, brocas y placas eléctricas listas para despacho directo a obra con
-                precios mayoristas y factura.
+                Disponemos de amplio stock de cerraduras de seguridad, candados blindados, resinas
+                epóxicas y herramientas listo para despacho directo a obra con precios mayoristas y
+                factura.
               </p>
             </div>
 
@@ -415,7 +414,7 @@ export default function Products() {
 
               <a
                 href={`https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(
-                  'Hola Alvarez Ferretería, necesito una cotización por mayor para abastecer una obra/proyecto.'
+                  'Hola Alvarez Ferretería, necesito una cotización para abastecer una obra/proyecto.'
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"

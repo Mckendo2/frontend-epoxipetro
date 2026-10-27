@@ -32,13 +32,14 @@ export function LandingCartProvider({ children }) {
 
   const addToCart = (product, presentation) => {
     const itemId = presentation.id;
-    const maxStock = presentation.stock_total || 0;
+    // El cliente solo ve y acumula según lo disponible en almacén
+    const maxStock = Number(presentation.stock_almacen ?? presentation.stock_total ?? 0);
 
     setCart((prev) => {
       const existing = prev.find((i) => i.id === itemId);
       if (existing) {
         if (maxStock > 0 && existing.cantidad >= maxStock) {
-          notify(`Stock máximo alcanzado (${maxStock} disponibles entre tienda y almacén).`);
+          notify(`Stock máximo alcanzado (${maxStock} disponibles).`);
           return prev;
         }
         notify(`+1 ${product.nombre} sumado a la cotización.`);
@@ -58,9 +59,7 @@ export function LandingCartProvider({ children }) {
           imagen_url: product.imagen_url,
           precio_venta: presentation.precio_venta || 0,
           unidad: presentation.unidad || 'pza',
-          stock_tienda: presentation.stock_tienda || 0,
-          stock_almacen: presentation.stock_almacen || 0,
-          stock_total: maxStock,
+          stock_disponible: maxStock,
           cantidad: 1,
         },
       ];
@@ -74,8 +73,8 @@ export function LandingCartProvider({ children }) {
           if (item.id === id) {
             const nextQty = item.cantidad + delta;
             if (nextQty <= 0) return null;
-            if (item.stock_total > 0 && nextQty > item.stock_total) {
-              notify(`Límite de stock alcanzado (${item.stock_total} unidades disponibles).`);
+            if (item.stock_disponible > 0 && nextQty > item.stock_disponible) {
+              notify(`Límite de stock alcanzado (${item.stock_disponible} unidades disponibles).`);
               return item;
             }
             return { ...item, cantidad: nextQty };

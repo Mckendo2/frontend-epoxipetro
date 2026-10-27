@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Trash2, Plus, Minus, MessageCircle, Copy, Check, ShoppingBag, Store, Warehouse, ShieldAlert } from 'lucide-react';
+import { X, Trash2, Plus, Minus, MessageCircle, Copy, Check, ShoppingBag, ShieldAlert, Package } from 'lucide-react';
 import { useLandingCart } from '../context/LandingCartContext';
 import { siteConfig } from '../data/siteConfig';
 import { getProductImageUrl } from '../../../config/api';
@@ -26,7 +26,7 @@ export default function CartDrawer() {
   const [cliente, setCliente] = useState({
     nombre: '',
     celular: '',
-    modalidad: 'retiro', // 'retiro' | 'almacen' | 'consulta'
+    modalidad: 'despacho', // 'despacho' | 'retiro' | 'consulta'
     nota: '',
   });
 
@@ -41,8 +41,8 @@ export default function CartDrawer() {
     if (cliente.celular) msg += `📱 *Contacto:* ${cliente.celular}\n`;
 
     const modalidadLabels = {
-      retiro: 'Retiro en Tienda',
-      almacen: 'Despacho desde Almacén Central (Obra/Mayorista)',
+      despacho: 'Envío / Despacho a obra o domicilio',
+      retiro: 'Retiro en local comercial',
       consulta: 'Cotización / Consulta de Disponibilidad',
     };
     msg += `🚚 *Modalidad:* ${modalidadLabels[cliente.modalidad] || 'A coordinar'}\n\n`;
@@ -137,7 +137,7 @@ export default function CartDrawer() {
             </div>
             <h3 className="mt-4 text-base font-semibold text-body">Tu lista de cotización está vacía</h3>
             <p className="mt-1 max-w-xs text-xs text-muted">
-              Explora los productos de nuestro almacén y tienda física para sumarlos a tu presupuesto.
+              Explora nuestro catálogo para sumar materiales a tu presupuesto.
             </p>
             <button
               onClick={() => {
@@ -147,7 +147,7 @@ export default function CartDrawer() {
               }}
               className="mt-6 rounded-lg bg-brass px-5 py-2.5 text-xs font-semibold text-canvas transition-colors hover:bg-brass-light"
             >
-              Explorar inventario en vivo
+              Explorar materiales
             </button>
           </div>
         ) : (
@@ -156,21 +156,23 @@ export default function CartDrawer() {
             <div className="flex-1 overflow-y-auto px-6 py-4 divide-y divide-edge">
               {cart.map((item) => {
                 const subtotal = item.cantidad * item.precio_venta;
-                const isMax = item.stock_total > 0 && item.cantidad >= item.stock_total;
+                const isMax = item.stock_disponible > 0 && item.cantidad >= item.stock_disponible;
+                const realImg = getProductImageUrl(item.imagen_url);
 
                 return (
                   <div key={item.id} className="py-4 first:pt-0 last:pb-0">
                     <div className="flex gap-3">
-                      {/* Thumbnail */}
-                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded border border-edge bg-canvas">
-                        <img
-                          src={getProductImageUrl(item.imagen_url, item.categoria)}
-                          alt={item.producto_nombre}
-                          className="h-full w-full object-cover"
-                          onError={(e) => {
-                            e.target.src = '/landing/insumos.png';
-                          }}
-                        />
+                      {/* Thumbnail or clean icon */}
+                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded border border-edge bg-canvas flex items-center justify-center">
+                        {realImg ? (
+                          <img
+                            src={realImg}
+                            alt={item.producto_nombre}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Package size={22} className="text-brass/60" />
+                        )}
                       </div>
 
                       {/* Info */}
@@ -193,22 +195,6 @@ export default function CartDrawer() {
                           >
                             <Trash2 size={15} />
                           </button>
-                        </div>
-
-                        {/* Stock Origin Badges */}
-                        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-                          {item.stock_tienda > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded bg-emerald-950/60 border border-emerald-800/50 px-1.5 py-0.5 text-emerald-400">
-                              <Store size={10} />
-                              <span>Tienda: {item.stock_tienda}</span>
-                            </span>
-                          )}
-                          {item.stock_almacen > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded bg-blue-950/60 border border-blue-800/50 px-1.5 py-0.5 text-blue-300">
-                              <Warehouse size={10} />
-                              <span>Almacén: {item.stock_almacen}</span>
-                            </span>
-                          )}
                         </div>
 
                         {/* Price & Quantity */}
@@ -272,7 +258,7 @@ export default function CartDrawer() {
                     <input
                       type="text"
                       required
-                      placeholder="Ej. Juan Pérez / Constructora"
+                      placeholder="Ej. Juan Pérez / Empresa"
                       value={cliente.nombre}
                       onChange={(e) => setCliente({ ...cliente, nombre: e.target.value })}
                       className="mt-1 w-full rounded border border-edge bg-panel px-2.5 py-1.5 text-xs text-body placeholder:text-muted/60 focus:border-brass focus:outline-none"
@@ -297,19 +283,19 @@ export default function CartDrawer() {
                     onChange={(e) => setCliente({ ...cliente, modalidad: e.target.value })}
                     className="mt-1 w-full rounded border border-edge bg-panel px-2.5 py-1.5 text-xs text-body focus:border-brass focus:outline-none"
                   >
-                    <option value="retiro">Retiro inmediato en Tienda Física</option>
-                    <option value="almacen">Despacho desde Almacén Central (Mayorista/Obra)</option>
+                    <option value="despacho">Envío / Despacho a obra o taller</option>
+                    <option value="retiro">Retiro personal en tienda</option>
                     <option value="consulta">Solo consultar disponibilidad y precios</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-medium text-muted">
-                    Nota o consulta adicional (Opcional)
+                    Nota o requerimiento (Opcional)
                   </label>
                   <input
                     type="text"
-                    placeholder="Ej. Requiero factura, entrega a domicilio, etc."
+                    placeholder="Ej. Requiero factura, entrega para mañana..."
                     value={cliente.nota}
                     onChange={(e) => setCliente({ ...cliente, nota: e.target.value })}
                     className="mt-1 w-full rounded border border-edge bg-panel px-2.5 py-1.5 text-xs text-body placeholder:text-muted/60 focus:border-brass focus:outline-none"
