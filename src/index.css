@@ -1,15 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-canvas: #0b0e0d;
-  --color-panel: #141918;
-  --color-raised: #1c2120;
-  --color-edge: #2a2f2d;
-  --color-body: #e6e4e1;
-  --color-muted: #7d7f7b;
-  --color-brass: #c8a54e;
-  --color-brass-light: #d9b85e;
-  --font-sans: 'Montserrat', system-ui, sans-serif;
+  --color-canvas: #0f172a;
+  --color-panel: #1e293b;
+  --color-raised: #273549;
+  --color-edge: #334155;
+  --color-edge-hover: #475569;
+  --color-body: #f8fafc;
+  --color-subtle: #cbd5e1;
+  --color-muted: #94a3b8;
+  --color-brand: #6366f1;
+  --color-brand-hover: #4f46e5;
+  --color-brand-light: #a5b4fc;
+  --color-accent-purple: #a855f7;
+  --color-brass: #6366f1;
+  --color-brass-light: #4f46e5;
+  --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+}
+
+.bg-login-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.brand-gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+.brand-shadow {
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.brand-shadow-lg {
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -88,50 +113,6 @@ body, html {
   display: flex;
   flex-direction: column;
   text-align: left;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
 
 /* ===== PRINT: Eliminar margenes del navegador al imprimir tickets ===== */

@@ -4,28 +4,28 @@ import { siteConfig } from '../data/siteConfig';
 
 const faqs = [
   {
-    q: '¿Cómo puedo solicitar una cotización?',
-    a: 'Podés armar tu pedido directamente en nuestro catálogo en línea y enviarlo, o escribirnos directamente a nuestro WhatsApp oficial (+591 655 55942). Te responderemos con la cotización formal detallada y disponibilidad de stock en minutos.',
+    q: '¿Cómo puedo solicitar una cotización formal?',
+    a: 'Puedes seleccionar los materiales directamente en nuestro catálogo de esta página indicando las cantidades requeridas y presionar "Enviar Cotización por WhatsApp", o escribirnos directamente al +591 655 55942. Te responderemos al instante.',
   },
   {
-    q: '¿Tienen tienda física para ver y retirar productos?',
-    a: 'Sí, contamos con atención al público en nuestro local comercial. Podés visitarnos en nuestro horario de atención o coordinar el retiro inmediato de tus pedidos previamente confirmados por WhatsApp.',
+    q: '¿Qué líneas de resinas epóxicas e insumos manejan?',
+    a: 'Disponemos de resinas epóxicas de alta transparencia y resistencia para recubrimientos, pisos industriales, encapsulados, carpintería con madera y aplicaciones técnicas, con asesoramiento sobre su proporción y curado.',
   },
   {
-    q: '¿Qué marcas de cerraduras y cerrajería manejan?',
-    a: 'Trabajamos con marcas líderes y certificadas en seguridad como Yale, Cisa, Master Lock, Petro y Ultra. Ofrecemos cerraduras de sobreponer, embutir, cerrojos de alta seguridad y candados blindados con garantía.',
+    q: '¿Qué marcas de cerraduras, candados y brocas comercializan?',
+    a: 'Trabajamos con marcas reconocidas como Yale, Cisa, Master Lock, Petro, Ultra y Power Drill. Contamos con chapas de 2 y 3 golpes, picaportes, candados de seguridad y brocas de cobalto de distintas medidas.',
   },
   {
-    q: '¿Venden resinas epóxicas para pisos y proyectos?',
-    a: 'Sí, disponemos de resinas epóxicas de alta transparencia y resistencia para encapsulados, mesas de río, manualidades, barnices UV y aplicaciones de grado profesional, con asesoramiento técnico para su correcta mezcla y aplicación.',
+    q: '¿Realizan ventas por volumen para constructoras, talleres o contratistas?',
+    a: 'Sí, atendemos tanto compras al detalle como pedidos mayoristas por volumen para obras civiles, talleres de cerrajería, carpintería e instaladores eléctricos.',
   },
   {
-    q: '¿Realizan ventas por mayor para constructores o talleres?',
-    a: 'Atendemos tanto compras al por menor como pedidos mayoristas para cerrajeros, carpinteros, instaladores y contratistas con precios especiales por volumen.',
+    q: '¿Cuáles son las modalidades de entrega y retiro?',
+    a: 'Puedes coordinar el retiro directo en nuestro local comercial o solicitar el despacho a tu obra, taller o domicilio a través de nuestro canal de atención en WhatsApp.',
   },
   {
-    q: '¿Cuáles son las formas de pago aceptadas?',
-    a: 'Aceptamos transferencias bancarias, pagos mediante QR simple, efectivo en tienda física y otros métodos coordinados al momento de confirmar tu pedido.',
+    q: '¿Cuáles son los métodos de pago habilitados?',
+    a: 'Aceptamos transferencias bancarias, pagos mediante código QR, efectivo en local comercial y otros medios coordinados al confirmar tu pedido.',
   },
 ];
 
@@ -37,29 +37,29 @@ export default function FAQ() {
   };
 
   return (
-    <section id="faq" className="scroll-mt-20 bg-panel py-20 lg:py-28">
+    <section id="faq" className="scroll-mt-24 border-t border-[#334155] bg-[#1e293b] py-20 lg:py-28">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-edge bg-raised px-3 py-1 text-xs font-medium text-brass">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#6366f1]/30 bg-[#6366f1]/15 px-3.5 py-1 text-xs font-semibold text-[#a5b4fc]">
             <HelpCircle size={14} aria-hidden="true" />
-            <span>Resolvé tus dudas</span>
+            <span>Soporte y Consultas</span>
           </div>
           <h2
-            className="mt-4 text-3xl font-bold tracking-tight text-body sm:text-4xl"
+            className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
             style={{ textWrap: 'balance' }}
           >
             Preguntas frecuentes
           </h2>
-          <p className="mt-3 text-muted" style={{ textWrap: 'pretty' }}>
-            Todo lo que necesitás saber sobre compras, envíos, marcas y formas de atención.
+          <p className="mt-3 text-[#94a3b8]" style={{ textWrap: 'pretty' }}>
+            Información clave sobre productos, cotizaciones por volumen, envíos y medios de pago.
           </p>
         </div>
 
-        <div className="mt-12 divide-y divide-edge rounded-lg border border-edge bg-canvas/60">
+        <div className="mt-12 divide-y divide-[#334155] rounded-2xl border border-[#334155] bg-[#0f172a] overflow-hidden shadow-xl shadow-black/20">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
-              <div key={idx} className="transition-colors hover:bg-raised/40">
+              <div key={idx} className="transition-colors hover:bg-[#1e293b]/50">
                 <button
                   type="button"
                   onClick={() => toggle(idx)}
@@ -68,13 +68,17 @@ export default function FAQ() {
                   aria-controls={`faq-answer-${idx}`}
                   id={`faq-question-${idx}`}
                 >
-                  <span className={`text-base font-semibold ${isOpen ? 'text-brass' : 'text-body'}`}>
+                  <span
+                    className={`text-base font-semibold ${
+                      isOpen ? 'text-[#a5b4fc]' : 'text-white'
+                    }`}
+                  >
                     {faq.q}
                   </span>
                   <ChevronDown
                     size={20}
-                    className={`ml-4 shrink-0 text-muted transition-transform duration-200 ${
-                      isOpen ? 'rotate-180 text-brass' : ''
+                    className={`ml-4 shrink-0 text-[#94a3b8] transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 text-[#6366f1]' : ''
                     }`}
                     aria-hidden="true"
                   />
@@ -84,7 +88,7 @@ export default function FAQ() {
                     id={`faq-answer-${idx}`}
                     role="region"
                     aria-labelledby={`faq-question-${idx}`}
-                    className="px-6 pb-5 text-sm leading-relaxed text-muted animate-in fade-in duration-200"
+                    className="px-6 pb-5 text-sm leading-relaxed text-[#94a3b8]"
                   >
                     <p>{faq.a}</p>
                   </div>
@@ -94,17 +98,17 @@ export default function FAQ() {
           })}
         </div>
 
-        <div className="mt-8 text-center text-sm text-muted">
-          ¿Tenés otra duda?{' '}
+        <div className="mt-8 text-center text-sm text-[#94a3b8]">
+          ¿Tienes otra consulta técnica o comercial?{' '}
           <a
             href={`https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(
-              'Hola, tengo una consulta que no está en las preguntas frecuentes.'
+              'Hola, tengo una consulta técnica sobre sus productos.'
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-brass underline decoration-brass/40 underline-offset-4 hover:decoration-brass"
+            className="font-semibold text-[#a5b4fc] underline decoration-[#6366f1]/50 underline-offset-4 hover:text-white hover:decoration-[#6366f1]"
           >
-            Preguntanos directo por WhatsApp
+            Escríbenos directo por WhatsApp
           </a>
         </div>
       </div>
