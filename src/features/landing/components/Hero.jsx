@@ -25,7 +25,23 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden bg-ink pt-16">
-      <div className="bg-login-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+      <img
+        src="/landing/hero-resina.jpg"
+        alt=""
+        width={740}
+        height={416}
+        fetchPriority="high"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+      />
+      {/* Velo oscuro para que el texto se lea sobre la imagen */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/65 to-ink/45"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink/70 to-transparent"
+        aria-hidden="true"
+      />
 
       <div className="relative mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-14 lg:grid-cols-12 lg:gap-16 lg:px-8 lg:pb-24 lg:pt-20">
         <div className="lg:col-span-7">
@@ -85,7 +101,7 @@ export default function Hero() {
                     <span className="block font-display text-[1.75rem] font-semibold leading-none text-white">
                       {family.name}
                     </span>
-                    <span className="mt-1.5 block text-sm text-slate-400">{family.blurb}</span>
+                    <span className="mt-1.5 block text-sm text-slate-300">{family.blurb}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-3">
                     <span className="font-display text-3xl font-medium tabular-nums text-[#a5b4fc]">
@@ -101,7 +117,7 @@ export default function Hero() {
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-sm text-slate-400">
+          <p className="mt-4 text-sm text-slate-300">
             {loading ? 'Cargando catálogo…' : `${products.length} productos en el catálogo.`}
           </p>
         </div>
