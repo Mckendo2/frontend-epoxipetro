@@ -5,14 +5,13 @@ import { useLandingCart } from '../context/LandingCartContext';
 
 const navLinks = [
   { label: 'Productos', href: '#productos' },
-  { label: 'Ventajas', href: '#ventajas' },
-  { label: 'Cómo comprar', href: '#proceso' },
-  { label: 'Preguntas', href: '#faq' },
+  { label: 'Resinas', href: '#resinas' },
+  { label: 'Cómo cotizar', href: '#como-cotizar' },
+  { label: 'Preguntas', href: '#preguntas' },
   { label: 'Contacto', href: '#contacto' },
 ];
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const lastScrollY = useRef(0);
@@ -22,13 +21,11 @@ export default function Navbar() {
     const onScroll = () => {
       const currentY = window.scrollY;
 
-      setScrolled(currentY > 20);
-
-      // Ocultar al bajar, mostrar al subir (estilo Westlake Epoxy)
+      // Se oculta al bajar y reaparece al subir.
       if (currentY > lastScrollY.current && currentY > 90) {
         setHidden(true);
         setMenuOpen(false);
-      } else {
+      } else if (currentY < lastScrollY.current) {
         setHidden(false);
       }
 
@@ -46,149 +43,104 @@ export default function Navbar() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const cartLabel =
+    totalItems > 0 ? `Mi lista, ${totalItems} productos` : 'Mi lista de cotización';
+
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
+      onFocus={() => setHidden(false)}
+      className={`fixed inset-x-0 top-0 z-40 border-b border-line bg-ink transition-transform duration-300 ${
         hidden ? '-translate-y-full' : 'translate-y-0'
-      } ${
-        scrolled
-          ? 'border-b border-[#334155] bg-[#0f172a]/95 backdrop-blur-md shadow-lg shadow-black/25'
-          : 'border-b border-transparent bg-[#0f172a]/80 backdrop-blur-sm'
       }`}
     >
       <nav
-        className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8"
+        className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-5 lg:px-8"
         aria-label="Navegación principal"
       >
-        {/* Brand Logo — Login style */}
-        <a href="/" className="flex items-center gap-3 group">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-[10px] text-white font-bold text-lg transition-transform duration-200 group-hover:scale-105"
-            style={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-              boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)',
-            }}
+        <a href="/" className="flex items-center gap-3" translate="no">
+          <span
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-base font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)' }}
+            aria-hidden="true"
           >
             A
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">
-            Alvarez<span className="text-[#6366f1]">Ferretería</span>
+          </span>
+          <span className="text-lg font-bold tracking-tight text-white">
+            Alvarez<span className="text-[#818cf8]"> Ferretería</span>
           </span>
         </a>
 
-        {/* Desktop links */}
-        <div className="hidden items-center gap-8 lg:flex">
+        <div className="hidden items-center gap-7 lg:flex">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
               onClick={(e) => handleNav(e, link.href)}
-              className="text-sm font-medium text-[#cbd5e1] transition-colors hover:text-white"
+              className="text-sm font-medium text-slate-300 transition-colors hover:text-white"
             >
               {link.label}
             </a>
           ))}
         </div>
 
-        {/* Desktop Actions */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => setIsCartOpen(true)}
-            className="relative flex items-center gap-2 rounded-lg border border-[#334155] bg-[#1e293b] px-4 py-2 text-sm font-semibold text-[#f8fafc] transition-all hover:border-[#6366f1]"
-            aria-label="Ver lista de cotización"
+            aria-label={cartLabel}
+            className="inline-flex h-10 items-center gap-2 rounded-md bg-[#6366f1] px-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5]"
           >
-            <ShoppingCart size={17} className="text-[#a5b4fc]" />
-            <span>Cotización</span>
+            <ShoppingCart size={17} aria-hidden="true" />
+            <span className="hidden sm:inline">Mi lista</span>
             {totalItems > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#6366f1] px-1.5 text-[11px] font-bold text-white">
+              <span className="min-w-5 rounded-full bg-white px-1.5 text-center text-xs font-bold tabular-nums text-ink">
                 {totalItems}
               </span>
             )}
           </button>
-
-          <a
-            href={siteConfig.links.catalog}
-            className="rounded-lg bg-[#6366f1] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5]"
-          >
-            Catálogo
-          </a>
 
           <a
             href={siteConfig.links.staffLogin}
-            className="ml-1 rounded-lg border border-[#334155] bg-[#1e293b]/60 p-2 text-[#94a3b8] transition-colors hover:border-[#475569] hover:text-white"
-            title="Acceso al sistema"
             aria-label="Acceso al sistema"
+            title="Acceso al sistema"
+            className="hidden h-10 w-10 items-center justify-center rounded-md border border-line text-slate-400 transition-colors hover:border-slate-500 hover:text-white lg:inline-flex"
           >
-            <LogIn size={17} />
+            <LogIn size={17} aria-hidden="true" />
           </a>
-        </div>
-
-        {/* Mobile controls */}
-        <div className="flex items-center gap-2.5 lg:hidden">
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="relative rounded-lg border border-[#334155] bg-[#1e293b] p-2.5 text-[#a5b4fc]"
-            aria-label="Ver lista de cotización"
-          >
-            <ShoppingCart size={20} />
-            {totalItems > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#6366f1] px-1 text-[10px] font-bold text-white">
-                {totalItems}
-              </span>
-            )}
-          </button>
 
           <button
-            className="rounded-lg border border-[#334155] bg-[#1e293b] p-2 text-[#f8fafc]"
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-line text-white lg:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
           >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile menu */}
       {menuOpen && (
-        <div id="mobile-menu" className="border-t border-[#334155] bg-[#0f172a] lg:hidden">
-          <div className="flex flex-col gap-1 px-6 py-4">
+        <div id="mobile-menu" className="border-t border-line bg-ink lg:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col px-5 py-2">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={(e) => handleNav(e, link.href)}
-                className="border-b border-[#1e293b] py-3 text-sm font-medium text-[#cbd5e1] transition-colors hover:text-white"
+                className="border-b border-ink-soft py-3.5 text-base font-medium text-slate-200"
               >
                 {link.label}
               </a>
             ))}
-            <div className="mt-4 flex flex-col gap-2.5">
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  setIsCartOpen(true);
-                }}
-                className="flex items-center justify-center gap-2 rounded-lg border border-[#6366f1]/40 bg-[#1e293b] px-4 py-3 text-sm font-semibold text-[#a5b4fc]"
-              >
-                <ShoppingCart size={18} />
-                <span>Ver cotización ({totalItems})</span>
-              </button>
-              <a
-                href={siteConfig.links.catalog}
-                className="rounded-lg bg-[#6366f1] px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5]"
-              >
-                Catálogo completo
-              </a>
-              <a
-                href={siteConfig.links.staffLogin}
-                className="mt-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-[#94a3b8] hover:text-white"
-              >
-                <LogIn size={14} />
-                <span>Iniciar Sesión</span>
-              </a>
-            </div>
+            <a
+              href={siteConfig.links.staffLogin}
+              className="inline-flex items-center gap-2 py-3.5 text-sm text-slate-400"
+            >
+              <LogIn size={15} aria-hidden="true" />
+              Acceso al sistema
+            </a>
           </div>
         </div>
       )}

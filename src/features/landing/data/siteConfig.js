@@ -20,12 +20,10 @@ export const siteConfig = {
     whatsappDisplay: '+591 655 55942',
     phone: '', // Teléfono fijo opcional. Si queda vacío no se muestra.
     email: '', // Correo opcional. Si queda vacío no se muestra.
-    address: 'Dirección de ejemplo 123, Bolivia', // EJEMPLO
+    address: '', // Pendiente: agrega la dirección real y se mostrará en el pie de página.
     mapsUrl: '', // Enlace de Google Maps opcional.
     hours: [
-      // EJEMPLO
-      { days: 'Lunes a viernes', time: '8:30 a 19:00' },
-      { days: 'Sábado', time: '8:30 a 13:00' },
+      // Pendiente: ejemplo { days: 'Lunes a viernes', time: '8:30 a 19:00' }
     ],
   },
 

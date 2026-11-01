@@ -1,146 +1,109 @@
-import { MessageCircle, ArrowRight, Droplets, ShieldCheck, Wrench, Zap } from 'lucide-react';
-import { siteConfig } from '../data/siteConfig';
+import { useState } from 'react';
+import { ArrowRight, Search } from 'lucide-react';
+import { FAMILIES } from '../data/families';
+import { useCatalog } from '../context/CatalogContext';
 
-const highlights = [
-  {
-    title: 'Resinas Epóxicas',
-    subtitle: 'Pisos, recubrimientos y encapsulados',
-    Icon: Droplets,
-  },
-  {
-    title: 'Cerrajería',
-    subtitle: 'Chapas, cerrojos y candados',
-    Icon: ShieldCheck,
-  },
-  {
-    title: 'Herramientas',
-    subtitle: 'Brocas de cobalto y accesorios',
-    Icon: Wrench,
-  },
-  {
-    title: 'Eléctricos',
-    subtitle: 'Placas, interruptores e insumos',
-    Icon: Zap,
-  },
-];
+const goToProducts = () => {
+  document.querySelector('#productos')?.scrollIntoView({ behavior: 'smooth' });
+};
 
 export default function Hero() {
-  const waUrl = `https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(
-    siteConfig.whatsappGreeting
-  )}`;
+  const { products, loading, stats, filters, setFilters } = useCatalog();
+  const [query, setQuery] = useState(filters.q);
 
-  const scrollToProducts = (e) => {
+  const onSearch = (e) => {
     e.preventDefault();
-    const el = document.querySelector('#productos');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    setFilters({ q: query.trim(), family: 'todos', category: '' });
+    goToProducts();
+  };
+
+  const openFamily = (id) => {
+    setFilters({ q: '', family: id, category: '' });
+    setQuery('');
+    goToProducts();
   };
 
   return (
-    <section className="relative flex min-h-[88vh] items-center overflow-hidden bg-[#0f172a] pt-24 pb-16 lg:pt-28 lg:pb-20">
-      {/* LoginPage.jsx 40x40 Architectural Grid */}
-      <div className="pointer-events-none absolute inset-0 bg-login-grid opacity-80" aria-hidden="true" />
+    <section className="relative overflow-hidden bg-ink pt-16">
+      <div className="bg-login-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
 
-      {/* Subtle Floating Grid Squares from LoginPage.jsx */}
-      <div
-        className="pointer-events-none absolute top-[22%] left-[15%] hidden h-10 w-10 bg-white/[0.04] lg:block"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute top-[32%] right-[22%] hidden h-10 w-10 bg-[#6366f1]/[0.08] lg:block"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute bottom-[24%] left-[42%] hidden h-10 w-10 bg-white/[0.04] lg:block"
-        aria-hidden="true"
-      />
+      <div className="relative mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-14 lg:grid-cols-12 lg:gap-16 lg:px-8 lg:pb-24 lg:pt-20">
+        <div className="lg:col-span-7">
+          <h1
+            className="font-display text-[clamp(3.25rem,9vw,6.5rem)] font-semibold leading-[0.92] tracking-[-0.01em] text-white"
+            style={{ textWrap: 'balance' }}
+          >
+            Ferretería, cerrajería y resinas epóxicas.
+          </h1>
 
-      {/* Ambient Glow */}
-      <div
-        className="pointer-events-none absolute -top-24 right-1/4 h-[420px] w-[420px] rounded-full bg-[#6366f1]/15 blur-[130px]"
-        aria-hidden="true"
-      />
+          <p className="mt-6 max-w-md text-base leading-relaxed text-slate-300">
+            Mira lo que hay en almacén, arma tu lista y cotiza por WhatsApp.
+          </p>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
-          {/* Left Column: Clean, concise copy */}
-          <div className="lg:col-span-7">
-            <div className="flex flex-wrap gap-2">
-              {['Resinas Epóxicas', 'Cerrajería', 'Ferretería'].map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-[#6366f1]/30 bg-[#6366f1]/15 px-3.5 py-1 text-xs font-semibold text-[#a5b4fc]"
-                >
-                  {tag}
-                </span>
-              ))}
+          <form onSubmit={onSearch} role="search" className="mt-9 flex max-w-xl">
+            <label htmlFor="hero-search" className="sr-only">
+              Buscar productos
+            </label>
+            <div className="relative flex-1">
+              <Search
+                size={18}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                id="hero-search"
+                name="q"
+                type="search"
+                autoComplete="off"
+                spellCheck={false}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Candado Yale, broca 3 mm, resina 2:1…"
+                className="h-13 w-full rounded-l-md border border-line bg-ink-soft pl-11 pr-4 text-base text-white placeholder:text-slate-500 focus:border-[#6366f1]"
+              />
             </div>
-
-            <h1
-              className="mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl"
-              style={{ textWrap: 'balance' }}
+            <button
+              type="submit"
+              className="h-13 rounded-r-md bg-[#6366f1] px-6 text-base font-semibold text-white transition-colors hover:bg-[#4f46e5]"
             >
-              Soluciones resistentes para cada proyecto.
-            </h1>
+              Buscar
+            </button>
+          </form>
+        </div>
 
-            <p
-              className="mt-5 max-w-xl text-base leading-relaxed text-[#94a3b8] sm:text-lg"
-              style={{ textWrap: 'pretty' }}
-            >
-              Resinas epóxicas, cerraduras de seguridad, brocas y material eléctrico. Consulta
-              disponibilidad en tiempo real y cotiza en segundos.
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <a
-                href="#productos"
-                onClick={scrollToProducts}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#6366f1] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#6366f1]/25 transition-all hover:bg-[#4f46e5]"
-              >
-                <span>Ver Productos</span>
-                <ArrowRight size={17} />
-              </a>
-
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-[#334155] bg-[#1e293b] px-6 py-3.5 text-sm font-semibold text-[#f8fafc] transition-colors hover:border-[#6366f1]"
-              >
-                <MessageCircle size={17} className="text-[#a5b4fc]" />
-                <span>WhatsApp Directo</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Right Column: Clean 2x2 Visual Grid */}
-          <div className="lg:col-span-5">
-            <div className="grid grid-cols-2 gap-4">
-              {highlights.map((item) => (
-                <a
-                  key={item.title}
-                  href="#productos"
-                  onClick={scrollToProducts}
-                  className="group flex flex-col justify-between rounded-2xl border border-[#334155] bg-[#1e293b]/90 p-5 transition-all duration-200 hover:-translate-y-1 hover:border-[#6366f1] hover:shadow-xl hover:shadow-[#6366f1]/10"
+        <div className="lg:col-span-5 lg:pt-3">
+          <h2 className="sr-only">Familias de productos</h2>
+          <ul className="border-t border-line">
+            {FAMILIES.map((family) => (
+              <li key={family.id} className="border-b border-line">
+                <button
+                  type="button"
+                  onClick={() => openFamily(family.id)}
+                  className="group flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:bg-ink-soft/70"
                 >
-                  <div
-                    className="flex h-11 w-11 items-center justify-center rounded-xl text-white transition-transform group-hover:scale-105"
-                    style={{
-                      background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                      boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
-                    }}
-                  >
-                    <item.Icon size={20} />
-                  </div>
-                  <div className="mt-6">
-                    <h2 className="text-base font-bold text-white group-hover:text-[#a5b4fc] transition-colors">
-                      {item.title}
-                    </h2>
-                    <p className="mt-1 text-xs text-[#94a3b8]">{item.subtitle}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
+                  <span className="min-w-0">
+                    <span className="block font-display text-[1.75rem] font-semibold leading-none text-white">
+                      {family.name}
+                    </span>
+                    <span className="mt-1.5 block text-sm text-slate-400">{family.blurb}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-3">
+                    <span className="font-display text-3xl font-medium tabular-nums text-[#a5b4fc]">
+                      {loading ? '–' : stats.families[family.id]}
+                    </span>
+                    <ArrowRight
+                      size={18}
+                      aria-hidden="true"
+                      className="text-slate-500 transition-colors group-hover:text-white"
+                    />
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-sm text-slate-400">
+            {loading ? 'Cargando catálogo…' : `${products.length} productos en el catálogo.`}
+          </p>
         </div>
       </div>
     </section>

@@ -1,16 +1,15 @@
 import { useEffect } from 'react';
-import { MessageCircle, ShoppingCart, ArrowRight } from 'lucide-react';
+import { MessageCircle, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
-import Trust from '../components/Trust';
+import Brands from '../components/Brands';
 import Products from '../components/Products';
-import Benefits from '../components/Benefits';
-import Process from '../components/Process';
-import FAQ from '../components/FAQ';
-import CTAFinal from '../components/CTAFinal';
+import ResinGuide from '../components/ResinGuide';
+import HowToQuote from '../components/HowToQuote';
 import Footer from '../components/Footer';
 import CartDrawer from '../components/CartDrawer';
 import { LandingCartProvider, useLandingCart } from '../context/LandingCartContext';
+import { CatalogProvider } from '../context/CatalogContext';
 import { siteConfig } from '../data/siteConfig';
 
 const formatCurrency = (amount) =>
@@ -24,7 +23,7 @@ function LandingPageContent() {
 
   useEffect(() => {
     const prevTitle = document.title;
-    document.title = `${siteConfig.brand.fullName} | Resinas Epóxicas, Cerrajería y Suministros`;
+    document.title = `${siteConfig.brand.fullName} | Ferretería, cerrajería y resinas epóxicas`;
     return () => {
       document.title = prevTitle;
     };
@@ -35,99 +34,77 @@ function LandingPageContent() {
   )}`;
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-[#f8fafc] font-sans selection:bg-[#6366f1] selection:text-white">
-      {/* Top navigation */}
+    <div className="landing-root min-h-screen bg-paper font-sans text-ink selection:bg-[#6366f1] selection:text-white">
+      <a
+        href="#main-content"
+        className="sr-only fixed left-4 top-4 z-50 rounded-md bg-white px-4 py-2 text-sm font-semibold text-ink focus:not-sr-only"
+      >
+        Saltar al contenido
+      </a>
+
       <Navbar />
 
-      {/* Main content sections */}
       <main id="main-content">
         <Hero />
-        <Trust />
+        <Brands />
         <Products />
-        <Benefits />
-        <Process />
-        <FAQ />
-        <CTAFinal />
+        <ResinGuide />
+        <HowToQuote />
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* Interactive Quotation Cart Drawer */}
       <CartDrawer />
 
-      {/* Floating Bottom Bar: Active when customer has selected products */}
+      {/* Barra de la lista: aparece cuando el cliente ya eligió productos */}
       {totalItems > 0 && (
-        <div className="fixed bottom-6 inset-x-4 z-40 mx-auto max-w-xl animate-in slide-in-from-bottom-5 duration-300">
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-[#6366f1]/60 bg-[#1e293b]/95 p-3.5 shadow-2xl shadow-black/50 backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div
-                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-white"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                }}
-              >
-                <ShoppingCart size={20} />
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-extrabold text-[#0f172a]">
-                  {totalItems}
+        <div className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 mx-auto max-w-xl">
+          <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-ink p-3 pl-4 shadow-xl shadow-black/30">
+            <p className="text-sm text-slate-300" aria-live="polite">
+              <span className="font-semibold tabular-nums text-white">{totalItems}</span>{' '}
+              {totalItems === 1 ? 'producto' : 'productos'}
+              {totalAmount > 0 && (
+                <span className="ml-3 font-semibold tabular-nums text-white">
+                  Bs. {formatCurrency(totalAmount)}
                 </span>
-              </div>
-              <div>
-                <p className="text-xs text-[#94a3b8]">
-                  {totalItems}{' '}
-                  {totalItems === 1 ? 'material seleccionado' : 'materiales seleccionados'}
-                </p>
-                <p className="text-sm font-bold text-white">
-                  <span className="text-[#a5b4fc] mr-1">Bs.</span>
-                  {formatCurrency(totalAmount)}
-                </p>
-              </div>
-            </div>
-
+              )}
+            </p>
             <button
+              type="button"
               onClick={() => setIsCartOpen(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#6366f1] px-4 py-2.5 text-xs font-bold text-white shadow transition-colors hover:bg-[#4f46e5]"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md bg-[#6366f1] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5]"
             >
-              <span>Revisar cotización</span>
-              <ArrowRight size={14} />
+              Ver mi lista
+              <ArrowRight size={15} aria-hidden="true" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Floating WhatsApp Quick Action Button */}
-      <aside
-        aria-label="Contacto flotante"
-        className={`fixed right-6 z-30 transition-all duration-300 ${
-          totalItems > 0 ? 'bottom-24' : 'bottom-6'
+      {/* WhatsApp directo */}
+      <a
+        href={floatingWaUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Escribir por WhatsApp"
+        className={`fixed right-4 z-30 flex h-13 w-13 items-center justify-center rounded-full bg-[#25D366] text-ink shadow-lg shadow-black/30 transition-transform duration-200 hover:scale-105 ${
+          totalItems > 0
+            ? 'bottom-[max(6rem,calc(env(safe-area-inset-bottom)+5rem))]'
+            : 'bottom-[max(1rem,env(safe-area-inset-bottom))]'
         }`}
       >
-        <a
-          href={floatingWaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Contactar por WhatsApp directamente"
-          className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-black/40 transition-transform duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#25D366] focus:ring-offset-[#0f172a]"
-        >
-          <span
-            className="absolute -inset-1 animate-ping rounded-full bg-[#25D366]/40 opacity-75"
-            aria-hidden="true"
-          />
-          <MessageCircle size={28} className="relative z-10 fill-white" aria-hidden="true" />
-
-          <span className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-[#334155] bg-[#1e293b] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-            ¿Dudas? Chateá con nosotros
-          </span>
-        </a>
-      </aside>
+        <MessageCircle size={26} aria-hidden="true" />
+      </a>
     </div>
   );
 }
 
 export default function LandingPage() {
   return (
-    <LandingCartProvider>
-      <LandingPageContent />
-    </LandingCartProvider>
+    <CatalogProvider>
+      <LandingCartProvider>
+        <LandingPageContent />
+      </LandingCartProvider>
+    </CatalogProvider>
   );
 }

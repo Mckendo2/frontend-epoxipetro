@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   Trash2,
@@ -42,6 +42,16 @@ export default function CartDrawer() {
   });
 
   const [copied, setCopied] = useState(false);
+  const [nameError, setNameError] = useState(false);
+
+  useEffect(() => {
+    if (!isCartOpen) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setIsCartOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isCartOpen, setIsCartOpen]);
 
   if (!isCartOpen) return null;
 
@@ -79,9 +89,11 @@ export default function CartDrawer() {
   const handleSendWhatsApp = (e) => {
     e.preventDefault();
     if (!cliente.nombre.trim()) {
-      alert('Por favor ingresa tu nombre o el de tu empresa para la cotización.');
+      setNameError(true);
+      document.getElementById('cotizacion-nombre')?.focus();
       return;
     }
+    setNameError(false);
 
     const text = buildQuoteText();
     const waUrl = `https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(text)}`;
@@ -104,44 +116,40 @@ export default function CartDrawer() {
         aria-hidden="true"
       />
 
-      {/* Drawer — Styled in LoginPage.jsx Slate & Indigo palette */}
+      {/* Drawer */}
       <aside
-        className="relative flex h-full w-full max-w-lg flex-col border-l border-[#334155] bg-[#0f172a] text-[#f8fafc] shadow-2xl transition-transform duration-300"
+        className="relative flex h-full w-full max-w-lg flex-col border-l border-line bg-ink text-slate-50 shadow-2xl"
         role="dialog"
-        aria-label="Carrito de cotización"
+        aria-modal="true"
+        aria-label="Lista de cotización"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#334155] bg-[#1e293b] px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-white"
-              style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                boxShadow: '0 4px 15px rgba(99, 102, 241, 0.35)',
-              }}
-            >
-              <ShoppingBag size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Cotización de Materiales</h2>
-              <p className="text-xs text-[#94a3b8]">
-                {totalItems} {totalItems === 1 ? 'producto' : 'productos'} seleccionados
-              </p>
-            </div>
+        <div className="flex items-center justify-between border-b border-line bg-ink-soft px-6 py-5">
+          <div>
+            <h2 className="font-display text-3xl font-semibold leading-none text-white">
+              Mi lista de cotización
+            </h2>
+            <p className="mt-1.5 text-sm text-slate-400">
+              {totalItems} {totalItems === 1 ? 'producto' : 'productos'}
+            </p>
           </div>
           <button
+            type="button"
             onClick={() => setIsCartOpen(false)}
-            className="rounded-lg border border-[#334155] bg-[#0f172a] p-2 text-[#94a3b8] hover:border-[#475569] hover:text-white"
-            aria-label="Cerrar panel de cotización"
+            className="rounded-md border border-line p-2 text-slate-400 hover:border-slate-500 hover:text-white"
+            aria-label="Cerrar lista de cotización"
           >
-            <X size={18} />
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
         {/* Real-time Notification Banner */}
         {lastNotification && (
-          <div className="border-b border-[#6366f1]/30 bg-[#6366f1]/15 px-6 py-2.5 text-xs font-medium text-[#a5b4fc] flex items-center gap-2">
-            <ShieldAlert size={15} className="shrink-0" />
+          <div
+            role="status"
+            className="border-b border-[#6366f1]/30 bg-[#6366f1]/15 px-6 py-2.5 text-sm font-medium text-[#c7d2fe] flex items-center gap-2"
+          >
+            <ShieldAlert size={15} className="shrink-0" aria-hidden="true" />
             <span>{lastNotification}</span>
           </div>
         )}
@@ -149,30 +157,29 @@ export default function CartDrawer() {
         {/* Content */}
         {cart.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#334155] bg-[#1e293b] text-[#94a3b8]">
-              <ShoppingBag size={30} />
-            </div>
-            <h3 className="mt-4 text-base font-bold text-white">
-              Tu lista de cotización está vacía
+            <ShoppingBag size={32} className="text-slate-500" aria-hidden="true" />
+            <h3 className="mt-4 font-display text-3xl font-semibold leading-none text-white">
+              Tu lista está vacía
             </h3>
-            <p className="mt-1 max-w-xs text-xs text-[#94a3b8]">
-              Explora nuestro catálogo para sumar materiales a tu presupuesto.
+            <p className="mt-2 max-w-xs text-sm text-slate-400">
+              Agrega productos desde la lista y aquí verás el total estimado.
             </p>
             <button
+              type="button"
               onClick={() => {
                 setIsCartOpen(false);
                 const el = document.getElementById('productos');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="mt-6 rounded-lg bg-[#6366f1] px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#4f46e5]"
+              className="mt-6 rounded-md bg-[#6366f1] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#4f46e5]"
             >
-              Explorar materiales
+              Ver productos
             </button>
           </div>
         ) : (
           <div className="flex flex-1 flex-col overflow-hidden">
             {/* Items list */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 divide-y divide-[#334155]">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4 divide-y divide-[#334155]">
               {cart.map((item) => {
                 const subtotal = item.cantidad * item.precio_venta;
                 const isMax =
@@ -272,70 +279,106 @@ export default function CartDrawer() {
               </div>
 
               {/* Client Form */}
-              <form onSubmit={handleSendWhatsApp} className="space-y-3">
+              <form onSubmit={handleSendWhatsApp} noValidate className="space-y-3">
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-[11px] font-medium text-[#cbd5e1]">
-                      Nombre / Razón Social <span className="text-red-400">*</span>
+                    <label
+                      htmlFor="cotizacion-nombre"
+                      className="block text-xs font-medium text-slate-300"
+                    >
+                      Nombre o empresa
                     </label>
                     <input
+                      id="cotizacion-nombre"
+                      name="nombre"
                       type="text"
+                      autoComplete="name"
                       required
-                      placeholder="Ej. Juan Pérez / Empresa"
+                      aria-invalid={nameError}
+                      aria-describedby={nameError ? 'cotizacion-nombre-error' : undefined}
+                      placeholder="Juan Pérez…"
                       value={cliente.nombre}
-                      onChange={(e) => setCliente({ ...cliente, nombre: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-[#334155] bg-[#0f172a] px-2.5 py-2 text-xs text-[#f8fafc] placeholder:text-[#64748b] focus:border-[#6366f1] focus:outline-none"
+                      onChange={(e) => {
+                        setCliente({ ...cliente, nombre: e.target.value });
+                        if (nameError) setNameError(false);
+                      }}
+                      className={`mt-1 w-full rounded-md border bg-[#0f172a] px-2.5 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:border-[#6366f1] ${
+                        nameError ? 'border-red-400' : 'border-[#334155]'
+                      }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-[#cbd5e1]">
-                      Teléfono / Celular
+                    <label
+                      htmlFor="cotizacion-celular"
+                      className="block text-xs font-medium text-slate-300"
+                    >
+                      Celular
                     </label>
                     <input
+                      id="cotizacion-celular"
+                      name="celular"
                       type="tel"
-                      placeholder="Ej. 71234567"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder="71234567…"
                       value={cliente.celular}
                       onChange={(e) => setCliente({ ...cliente, celular: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-[#334155] bg-[#0f172a] px-2.5 py-2 text-xs text-[#f8fafc] placeholder:text-[#64748b] focus:border-[#6366f1] focus:outline-none"
+                      className="mt-1 w-full rounded-md border border-[#334155] bg-[#0f172a] px-2.5 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:border-[#6366f1]"
                     />
                   </div>
                 </div>
+                {nameError && (
+                  <p id="cotizacion-nombre-error" role="alert" className="text-xs text-red-300">
+                    Escribe tu nombre o el de tu empresa para enviar la cotización.
+                  </p>
+                )}
 
                 <div>
-                  <label className="block text-[11px] font-medium text-[#cbd5e1]">
-                    Modalidad de Interés
+                  <label
+                    htmlFor="cotizacion-modalidad"
+                    className="block text-xs font-medium text-slate-300"
+                  >
+                    ¿Cómo lo necesitas?
                   </label>
                   <select
+                    id="cotizacion-modalidad"
+                    name="modalidad"
                     value={cliente.modalidad}
                     onChange={(e) => setCliente({ ...cliente, modalidad: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#334155] bg-[#0f172a] px-2.5 py-2 text-xs text-[#f8fafc] focus:border-[#6366f1] focus:outline-none"
+                    style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}
+                    className="mt-1 w-full rounded-md border border-[#334155] px-2.5 py-2.5 text-sm focus:border-[#6366f1]"
                   >
-                    <option value="despacho">Envío / Despacho a obra o taller</option>
-                    <option value="retiro">Retiro personal en local comercial</option>
+                    <option value="despacho">Envío a obra o taller</option>
+                    <option value="retiro">Retiro en tienda</option>
                     <option value="consulta">Solo consultar disponibilidad y precios</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-[#cbd5e1]">
-                    Nota o requerimiento (Opcional)
+                  <label
+                    htmlFor="cotizacion-nota"
+                    className="block text-xs font-medium text-slate-300"
+                  >
+                    Nota (opcional)
                   </label>
                   <input
+                    id="cotizacion-nota"
+                    name="nota"
                     type="text"
-                    placeholder="Ej. Requiero factura, entrega para mañana..."
+                    autoComplete="off"
+                    placeholder="Necesito factura, entrega mañana…"
                     value={cliente.nota}
                     onChange={(e) => setCliente({ ...cliente, nota: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#334155] bg-[#0f172a] px-2.5 py-2 text-xs text-[#f8fafc] placeholder:text-[#64748b] focus:border-[#6366f1] focus:outline-none"
+                    className="mt-1 w-full rounded-md border border-[#334155] bg-[#0f172a] px-2.5 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:border-[#6366f1]"
                   />
                 </div>
 
-                {/* Primary CTA button */}
                 <button
                   type="submit"
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#6366f1] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#6366f1]/25 transition-all hover:bg-[#4f46e5] active:scale-[0.99]"
+                  className="flex w-full items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-3 text-sm font-bold text-ink transition-colors hover:bg-[#3ee27b]"
                 >
-                  <MessageCircle size={18} />
-                  <span>Enviar Cotización por WhatsApp</span>
+                  <MessageCircle size={18} aria-hidden="true" />
+                  <span>Enviar cotización por WhatsApp</span>
                 </button>
               </form>
 

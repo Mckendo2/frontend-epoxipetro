@@ -16,6 +16,35 @@
   --color-brass: #6366f1;
   --color-brass-light: #4f46e5;
   --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+
+  /* Landing: tipografía de rótulo industrial + paleta del login */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --color-ink: #0f172a;
+  --color-ink-soft: #1e293b;
+  --color-line: #334155;
+  --color-paper: #f1f5f9;
+  --color-rule: #cbd5e1;
+  --color-action: #4f46e5;
+  --color-action-hover: #4338ca;
+}
+
+/* Foco visible en toda la landing (teclado) */
+.landing-root :focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+.landing-root {
+  color-scheme: light;
+  -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
+}
+
+.landing-root button,
+.landing-root a,
+.landing-root input,
+.landing-root select,
+.landing-root summary {
+  touch-action: manipulation;
 }
 
 .bg-login-grid {

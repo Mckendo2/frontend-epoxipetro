@@ -1,24 +1,25 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import MainLayout from './components/layout/MainLayout';
-import LoginPage from './features/auth/pages/LoginPage';
-import DashboardPage from './features/dashboard/pages/DashboardPage';
-import UsersPage from './features/users/pages/UsersPage';
-import RolesPage from './features/users/pages/RolesPage';
-import ClientesPage from './features/clientes/pages/ClientesPage';
-import InventarioPage from './features/inventario/pages/InventarioPage';
-import CatalogosPage from './features/inventario/pages/CatalogosPage';
-import TiendaPage from './features/inventario/pages/TiendaPage';
-import VentasPage from './features/ventas/pages/VentasPage';
-import CotizacionesPage from './features/cotizaciones/pages/CotizacionesPage';
-import MovimientosPage from './features/caja/pages/MovimientosPage';
-import AuditoriaPage from './features/auditoria/pages/AuditoriaPage';
-import PermisosPage from './features/users/pages/PermisosPage';
-import ReportesPage from './features/reportes/pages/ReportesPage';
-import CatalogoPublicoPage from './features/catalogo/pages/CatalogoPublicoPage';
-import ProveedoresPage from './features/proveedores/pages/ProveedoresPage';
-import PerfilPage from './features/perfil/pages/PerfilPage';
+const MainLayout = lazy(() => import('./components/layout/MainLayout'));
+const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
+const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage'));
+const UsersPage = lazy(() => import('./features/users/pages/UsersPage'));
+const RolesPage = lazy(() => import('./features/users/pages/RolesPage'));
+const ClientesPage = lazy(() => import('./features/clientes/pages/ClientesPage'));
+const InventarioPage = lazy(() => import('./features/inventario/pages/InventarioPage'));
+const CatalogosPage = lazy(() => import('./features/inventario/pages/CatalogosPage'));
+const TiendaPage = lazy(() => import('./features/inventario/pages/TiendaPage'));
+const VentasPage = lazy(() => import('./features/ventas/pages/VentasPage'));
+const CotizacionesPage = lazy(() => import('./features/cotizaciones/pages/CotizacionesPage'));
+const MovimientosPage = lazy(() => import('./features/caja/pages/MovimientosPage'));
+const AuditoriaPage = lazy(() => import('./features/auditoria/pages/AuditoriaPage'));
+const PermisosPage = lazy(() => import('./features/users/pages/PermisosPage'));
+const ReportesPage = lazy(() => import('./features/reportes/pages/ReportesPage'));
+const CatalogoPublicoPage = lazy(() => import('./features/catalogo/pages/CatalogoPublicoPage'));
+const ProveedoresPage = lazy(() => import('./features/proveedores/pages/ProveedoresPage'));
+const PerfilPage = lazy(() => import('./features/perfil/pages/PerfilPage'));
 import LandingPage from './features/landing/pages/LandingPage';
 
 const ProtectedRoute = ({ children, permisoRequerido }) => {
@@ -48,6 +49,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
+          <Suspense fallback={<div className="min-h-screen bg-[#0f172a]" aria-busy="true" />}>
           <Routes>
             {/* Rutas Públicas */}
             <Route path="/" element={<RootRoute />} />
@@ -75,6 +77,7 @@ function App() {
               <Route path="perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
             </Route>
           </Routes>
+          </Suspense>
         </Router>
       </AuthProvider>
     </ThemeProvider>

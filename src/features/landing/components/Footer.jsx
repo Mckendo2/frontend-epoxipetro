@@ -1,70 +1,93 @@
-import { ArrowUp, LogIn } from 'lucide-react';
+import { MessageCircle, LogIn } from 'lucide-react';
 import { siteConfig } from '../data/siteConfig';
 
 export default function Footer() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
+  const { contact, brand, links } = siteConfig;
   const currentYear = new Date().getFullYear();
 
-  return (
-    <footer className="border-t border-[#334155] bg-[#0b1120] text-[#94a3b8]" aria-label="Pie de página">
-      <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
-        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-[10px] text-white font-bold text-base"
-              style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-              }}
-            >
-              A
-            </div>
-            <span className="text-lg font-bold tracking-tight text-white">
-              Alvarez<span className="text-[#6366f1]">Ferretería</span>
-            </span>
-          </div>
+  const waUrl = `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(
+    siteConfig.whatsappGreeting
+  )}`;
 
-          <div className="flex flex-wrap gap-6 text-xs font-medium">
-            <a href="#productos" className="hover:text-white transition-colors">
-              Productos
-            </a>
-            <a href="#ventajas" className="hover:text-white transition-colors">
-              Ventajas
-            </a>
-            <a href="#proceso" className="hover:text-white transition-colors">
-              Cómo comprar
-            </a>
-            <a href="#faq" className="hover:text-white transition-colors">
-              Preguntas
-            </a>
-            <a href={siteConfig.links.catalog} className="text-[#a5b4fc] hover:text-white transition-colors">
-              Catálogo
-            </a>
-          </div>
+  return (
+    <footer id="contacto" className="scroll-mt-16 bg-ink text-slate-300">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-12 lg:px-8 lg:py-20">
+        <div className="lg:col-span-7">
+          <h2
+            className="font-display text-5xl font-semibold leading-none text-white sm:text-6xl"
+            style={{ textWrap: 'balance' }}
+          >
+            ¿No encuentras lo que buscas? Escríbenos.
+          </h2>
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex items-center gap-2.5 rounded-md bg-[#25D366] px-6 py-3.5 text-base font-semibold text-ink transition-colors hover:bg-[#3ee27b]"
+          >
+            <MessageCircle size={20} aria-hidden="true" />
+            WhatsApp <span className="tabular-nums">{contact.whatsappDisplay}</span>
+          </a>
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-[#1e293b] pt-6 text-xs sm:flex-row">
-          <p>© {currentYear} {siteConfig.brand.fullName}.</p>
+        <dl className="grid content-start gap-6 text-sm lg:col-span-5">
+          {contact.address && (
+            <div>
+              <dt className="font-semibold text-white">Dirección</dt>
+              <dd className="mt-1 text-slate-400">
+                {contact.mapsUrl ? (
+                  <a
+                    href={contact.mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-white"
+                  >
+                    {contact.address}
+                  </a>
+                ) : (
+                  contact.address
+                )}
+              </dd>
+            </div>
+          )}
+          {contact.hours.length > 0 && (
+            <div>
+              <dt className="font-semibold text-white">Horario</dt>
+              <dd className="mt-1 space-y-0.5 text-slate-400">
+                {contact.hours.map((h) => (
+                  <p key={h.days}>
+                    {h.days}: <span className="tabular-nums">{h.time}</span>
+                  </p>
+                ))}
+              </dd>
+            </div>
+          )}
+          {contact.email && (
+            <div>
+              <dt className="font-semibold text-white">Correo</dt>
+              <dd className="mt-1 text-slate-400">
+                <a href={`mailto:${contact.email}`} className="hover:text-white">
+                  {contact.email}
+                </a>
+              </dd>
+            </div>
+          )}
+        </dl>
+      </div>
 
+      <div className="border-t border-line">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-6 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+          <p translate="no">
+            © {currentYear} {brand.fullName}
+          </p>
           <div className="flex items-center gap-6">
-            <a
-              href={siteConfig.links.staffLogin}
-              className="inline-flex items-center gap-1.5 text-[#94a3b8] transition-colors hover:text-[#a5b4fc]"
-            >
-              <LogIn size={13} />
-              <span>Acceso al sistema</span>
+            <a href={links.catalog} className="hover:text-white">
+              Catálogo completo
             </a>
-
-            <button
-              onClick={scrollToTop}
-              className="inline-flex items-center gap-1 text-[#94a3b8] transition-colors hover:text-white"
-              aria-label="Volver arriba"
-            >
-              <span>Subir</span>
-              <ArrowUp size={14} />
-            </button>
+            <a href={links.staffLogin} className="inline-flex items-center gap-1.5 hover:text-white">
+              <LogIn size={14} aria-hidden="true" />
+              Acceso al sistema
+            </a>
           </div>
         </div>
       </div>
