@@ -25,17 +25,25 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden bg-ink pt-16">
+      {/* Fondo de resina: la foto va desenfocada (sin píxeles visibles) y los destellos son vectoriales, nítidos a cualquier tamaño */}
       <img
         src="/landing/hero-resina.jpg"
         alt=""
-        width={740}
-        height={416}
+        width={626}
+        height={352}
         fetchPriority="high"
+        className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover blur-[22px] saturate-125"
+      />
+      <img
+        src="/landing/hero-particulas.svg"
+        alt=""
+        width={1600}
+        height={900}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       />
-      {/* Velo oscuro para que el texto se lea sobre la imagen */}
+      {/* Velo para que el texto se lea */}
       <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/65 to-ink/45"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/60 to-ink/30"
         aria-hidden="true"
       />
       <div

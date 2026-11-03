@@ -8,9 +8,9 @@
 
 export const siteConfig = {
   brand: {
-    name: 'Alvarez',
-    descriptor: 'Ferretería',
-    fullName: 'Alvarez Ferretería',
+    name: 'Epoxipetro',
+    descriptor: 'Resinas, cerrajería y ferretería',
+    fullName: 'Epoxipetro',
   },
 
   contact: {
@@ -45,5 +45,5 @@ export const siteConfig = {
   brands: ['Yale', 'Cisa', 'Master Lock', 'Petro', 'Ultra'],
 
   // Texto inicial del mensaje cuando el cliente escribe directo por WhatsApp.
-  whatsappGreeting: 'Hola, vengo de la página web de Alvarez Ferretería y quiero hacer una consulta.',
+  whatsappGreeting: 'Hola, vengo de la página web de Epoxipetro y quiero hacer una consulta.',
 };

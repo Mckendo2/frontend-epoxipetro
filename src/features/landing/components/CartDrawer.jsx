@@ -82,7 +82,7 @@ export default function CartDrawer() {
       msg += `\n💬 *Nota adicional:* ${cliente.nota}\n`;
     }
 
-    msg += `\n_Cotización generada desde la plataforma web oficial de Alvarez Ferretería._`;
+    msg += `\n_Cotización generada desde la plataforma web oficial de Epoxipetro._`;
     return msg;
   };
 
