@@ -9,20 +9,15 @@ const RESINS = [
   { category: 'Resina UV', ratio: 'UV', detail: 'Se endurece con luz UV, sin mezcla' },
 ];
 
-const goToProducts = () => {
-  document.querySelector('#productos')?.scrollIntoView({ behavior: 'smooth' });
-};
-
 export default function ResinGuide() {
-  const { stats, loading, setFilters } = useCatalog();
+  const { stats, loading, selectCategoryAndScroll } = useCatalog();
 
   const waUrl = `https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(
     'Hola, quiero que me ayuden a elegir una resina epóxica para mi proyecto.'
   )}`;
 
   const show = (category) => {
-    setFilters({ q: '', family: 'resinas', category });
-    goToProducts();
+    selectCategoryAndScroll('resinas', category);
   };
 
   return (
@@ -105,4 +100,3 @@ export default function ResinGuide() {
     </section>
   );
 }
-

@@ -3,6 +3,7 @@ import { MessageCircle, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Brands from '../components/Brands';
+import CategoriesShowcase from '../components/CategoriesShowcase';
 import Products from '../components/Products';
 import ResinGuide from '../components/ResinGuide';
 import HowToQuote from '../components/HowToQuote';
@@ -34,7 +35,7 @@ function LandingPageContent() {
   )}`;
 
   return (
-    <div className="landing-root min-h-screen bg-paper font-sans text-ink selection:bg-[#6366f1] selection:text-white">
+    <div className="landing-root min-h-screen overflow-x-hidden bg-paper font-sans text-ink selection:bg-[#6366f1] selection:text-white">
       <a
         href="#main-content"
         className="sr-only fixed left-4 top-4 z-50 rounded-md bg-white px-4 py-2 text-sm font-semibold text-ink focus:not-sr-only"
@@ -47,6 +48,7 @@ function LandingPageContent() {
       <main id="main-content">
         <Hero />
         <Brands />
+        <CategoriesShowcase />
         <Products />
         <ResinGuide />
         <HowToQuote />

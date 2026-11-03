@@ -3,29 +3,24 @@ import { ArrowRight, Search } from 'lucide-react';
 import { FAMILIES } from '../data/families';
 import { useCatalog } from '../context/CatalogContext';
 
-const goToProducts = () => {
-  document.querySelector('#productos')?.scrollIntoView({ behavior: 'smooth' });
-};
-
 export default function Hero() {
-  const { products, loading, stats, filters, setFilters } = useCatalog();
+  const { products, loading, stats, filters, setFilters, selectCategoryAndScroll } = useCatalog();
   const [query, setQuery] = useState(filters.q);
 
   const onSearch = (e) => {
     e.preventDefault();
-    setFilters({ q: query.trim(), family: 'todos', category: '' });
-    goToProducts();
+    setFilters({ q: query.trim(), category: '' });
+    document.getElementById('catalogo-categoria')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const openFamily = (id) => {
-    setFilters({ q: '', family: id, category: '' });
     setQuery('');
-    goToProducts();
+    selectCategoryAndScroll(id);
   };
 
   return (
     <section className="relative overflow-hidden bg-ink pt-16">
-      {/* Fondo de resina: la foto va desenfocada (sin píxeles visibles) y los destellos son vectoriales, nítidos a cualquier tamaño */}
+      {/* Fondo de resina desenfocado sin píxeles visibles + destellos vectoriales nítidos */}
       <img
         src="/landing/hero-resina.jpg"
         alt=""
@@ -41,7 +36,6 @@ export default function Hero() {
         height={900}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       />
-      {/* Velo para que el texto se lea */}
       <div
         className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/60 to-ink/30"
         aria-hidden="true"
@@ -52,7 +46,7 @@ export default function Hero() {
       />
 
       <div className="relative mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-14 lg:grid-cols-12 lg:gap-16 lg:px-8 lg:pb-24 lg:pt-20">
-        <div className="lg:col-span-7">
+        <div className="min-w-0 lg:col-span-7">
           <h1
             className="font-display text-[clamp(3.25rem,9vw,6.5rem)] font-semibold leading-[0.92] tracking-[-0.01em] text-white"
             style={{ textWrap: 'balance' }}
@@ -60,8 +54,8 @@ export default function Hero() {
             Ferretería, cerrajería y resinas epóxicas.
           </h1>
 
-          <p className="mt-6 max-w-md text-base leading-relaxed text-slate-300">
-            Mira lo que hay en almacén, arma tu lista y cotiza por WhatsApp.
+          <p className="mt-6 max-w-md text-base leading-relaxed text-slate-200">
+            Mira lo que hay en almacén, elige una categoría y cotiza tu lista por WhatsApp.
           </p>
 
           <form onSubmit={onSearch} role="search" className="mt-9 flex max-w-xl">
@@ -83,7 +77,7 @@ export default function Hero() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Candado Yale, broca 3 mm, resina 2:1…"
-                className="h-13 w-full rounded-l-md border border-line bg-ink-soft pl-11 pr-4 text-base text-white placeholder:text-slate-500 focus:border-[#6366f1]"
+                className="h-13 w-full rounded-l-md border border-line bg-ink-soft/90 pl-11 pr-4 text-base text-white placeholder:text-slate-400 focus:border-[#6366f1]"
               />
             </div>
             <button
@@ -95,21 +89,23 @@ export default function Hero() {
           </form>
         </div>
 
-        <div className="lg:col-span-5 lg:pt-3">
-          <h2 className="sr-only">Familias de productos</h2>
-          <ul className="border-t border-line">
+        <div className="min-w-0 lg:col-span-5 lg:pt-2">
+          <h2 className="sr-only">Categorías de productos</h2>
+          <ul className="border-t border-white/15">
             {FAMILIES.map((family) => (
-              <li key={family.id} className="border-b border-line">
+              <li key={family.id} className="border-b border-white/15">
                 <button
                   type="button"
                   onClick={() => openFamily(family.id)}
-                  className="group flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:bg-ink-soft/70"
+                  className="group flex w-full items-center justify-between gap-4 py-3.5 text-left transition-colors hover:bg-white/5"
                 >
-                  <span className="min-w-0">
-                    <span className="block font-display text-[1.75rem] font-semibold leading-none text-white">
-                      {family.name}
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-display text-[1.6rem] font-semibold leading-none text-white">
+                      {family.shortName}
                     </span>
-                    <span className="mt-1.5 block text-sm text-slate-300">{family.blurb}</span>
+                    <span className="mt-1 line-clamp-1 text-xs text-slate-300">
+                      {family.blurb}
+                    </span>
                   </span>
                   <span className="flex shrink-0 items-center gap-3">
                     <span className="font-display text-3xl font-medium tabular-nums text-[#a5b4fc]">
@@ -118,15 +114,15 @@ export default function Hero() {
                     <ArrowRight
                       size={18}
                       aria-hidden="true"
-                      className="text-slate-500 transition-colors group-hover:text-white"
+                      className="text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-white"
                     />
                   </span>
                 </button>
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-sm text-slate-300">
-            {loading ? 'Cargando catálogo…' : `${products.length} productos en el catálogo.`}
+          <p className="mt-3.5 text-xs text-slate-300">
+            {loading ? 'Cargando catálogo…' : `${products.length} productos en catálogo.`}
           </p>
         </div>
       </div>

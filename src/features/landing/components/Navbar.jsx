@@ -5,10 +5,10 @@ import { useLandingCart } from '../context/LandingCartContext';
 import Brand from './Brand';
 
 const navLinks = [
-  { label: 'Productos', href: '#productos' },
+  { label: 'Categorías', href: '#productos' },
+  { label: 'Catálogo', href: '#catalogo-categoria' },
   { label: 'Resinas', href: '#resinas' },
   { label: 'Cómo cotizar', href: '#como-cotizar' },
-  { label: 'Preguntas', href: '#preguntas' },
   { label: 'Contacto', href: '#contacto' },
 ];
 

@@ -11,8 +11,9 @@ import { FAMILIES, getFamilyId, normalizeText } from '../data/families';
 
 const CatalogContext = createContext(null);
 
-const EMPTY_FILTERS = { q: '', family: 'todos', category: '', onlyAvailable: false };
-const VALID_FAMILIES = new Set(['todos', ...FAMILIES.map((f) => f.id)]);
+const DEFAULT_FAMILY = FAMILIES[0].id; // 'resinas'
+const EMPTY_FILTERS = { q: '', family: DEFAULT_FAMILY, category: '', onlyAvailable: false };
+const VALID_FAMILIES = new Set(FAMILIES.map((f) => f.id));
 
 const clean = (value) => String(value || '').trim();
 
@@ -62,10 +63,10 @@ const byAvailabilityThenName = (a, b) => {
 function readFiltersFromUrl() {
   if (typeof window === 'undefined') return EMPTY_FILTERS;
   const params = new URLSearchParams(window.location.search);
-  const family = params.get('f') || 'todos';
+  const family = params.get('f') || DEFAULT_FAMILY;
   return {
     q: params.get('q') || '',
-    family: VALID_FAMILIES.has(family) ? family : 'todos',
+    family: VALID_FAMILIES.has(family) ? family : DEFAULT_FAMILY,
     category: params.get('c') || '',
     onlyAvailable: params.get('d') === '1',
   };
@@ -103,11 +104,11 @@ export function CatalogProvider({ children }) {
     return () => controller.abort();
   }, [load]);
 
-  // Filtros reflejados en la URL: se pueden compartir y funcionan con "atrás".
+  // Sincroniza filtros con la URL
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.q) params.set('q', filters.q);
-    if (filters.family !== 'todos') params.set('f', filters.family);
+    if (filters.family && filters.family !== DEFAULT_FAMILY) params.set('f', filters.family);
     if (filters.category) params.set('c', filters.category);
     if (filters.onlyAvailable) params.set('d', '1');
     const qs = params.toString();
@@ -119,17 +120,38 @@ export function CatalogProvider({ children }) {
     setFiltersState((prev) => ({ ...prev, ...patch }));
   }, []);
 
-  const resetFilters = useCallback(() => setFiltersState(EMPTY_FILTERS), []);
+  const resetFilters = useCallback(() => {
+    setFiltersState((prev) => ({
+      ...EMPTY_FILTERS,
+      family: prev.family || DEFAULT_FAMILY,
+    }));
+  }, []);
+
+  const selectCategoryAndScroll = useCallback((familyId, subCategory = '') => {
+    setFiltersState((prev) => ({
+      ...prev,
+      family: VALID_FAMILIES.has(familyId) ? familyId : DEFAULT_FAMILY,
+      category: subCategory,
+      q: '',
+    }));
+    requestAnimationFrame(() => {
+      const target = document.getElementById('catalogo-categoria');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }, []);
 
   const stats = useMemo(() => {
     const families = Object.fromEntries(FAMILIES.map((f) => [f.id, 0]));
+    const familySubcategories = Object.fromEntries(FAMILIES.map((f) => [f.id, []]));
     const categories = new Map(); // categoria -> { familia, count }
     const brandCount = new Map();
-    let hasImages = false;
 
     for (const p of products) {
-      families[p.familia] += 1;
-      if (p.imagen_url) hasImages = true;
+      if (families[p.familia] !== undefined) {
+        families[p.familia] += 1;
+      }
       if (p.categoria) {
         const entry = categories.get(p.categoria) || { familia: p.familia, count: 0 };
         entry.count += 1;
@@ -138,12 +160,22 @@ export function CatalogProvider({ children }) {
       if (p.marca) brandCount.set(p.marca, (brandCount.get(p.marca) || 0) + 1);
     }
 
+    for (const [catName, info] of categories.entries()) {
+      if (familySubcategories[info.familia]) {
+        familySubcategories[info.familia].push({ name: catName, count: info.count });
+      }
+    }
+
+    for (const famId of Object.keys(familySubcategories)) {
+      familySubcategories[famId].sort((a, b) => b.count - a.count);
+    }
+
     const brands = [...brandCount.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([name]) => name);
 
-    return { families, categories, brands, hasImages };
+    return { families, familySubcategories, categories, brands };
   }, [products]);
 
   const value = useMemo(
@@ -158,9 +190,10 @@ export function CatalogProvider({ children }) {
       filters,
       setFilters,
       resetFilters,
+      selectCategoryAndScroll,
       stats,
     }),
-    [products, status, filters, setFilters, resetFilters, stats, load]
+    [products, status, filters, setFilters, resetFilters, selectCategoryAndScroll, stats, load]
   );
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;

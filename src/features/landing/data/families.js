@@ -1,30 +1,61 @@
 /**
- * Familias comerciales de la tienda.
+ * Categorías principales de Epoxipetro.
  *
- * Agrupan las categorías reales de la base de datos para que el cliente
- * navegue por lo que busca (cerradura, resina, placa) y no por 40 categorías.
+ * Cada categoría agrupa las subcategorías reales de la base de datos y tiene su
+ * propia imagen representativa, paleta de acento e ícono técnico para los
+ * productos que aún no tienen fotografía cargada por gerencia.
  */
 
 export const FAMILIES = [
   {
-    id: 'cerrajeria',
-    name: 'Cerrajería',
-    blurb: 'Candados, cerraduras, bisagras, cajas fuertes',
+    id: 'resinas',
+    name: 'Resinas Epóxicas y Pigmentos',
+    shortName: 'Resinas y Pigmentos',
+    blurb: 'Resina epóxica 1:1, 2:1, 3:1, UV, pigmentos mica, tintes y fotoluminiscentes',
+    image: '/landing/resinas.png',
+    accent: '#0ea5e9',
+    badgeBg: 'rgba(14, 165, 233, 0.14)',
+    badgeText: '#38bdf8',
   },
   {
-    id: 'resinas',
-    name: 'Resinas y pigmentos',
-    blurb: 'Resina epóxica y UV, micas, tintes',
+    id: 'cerraduras',
+    name: 'Cerraduras y Herrajes',
+    shortName: 'Cerraduras',
+    blurb: 'Cerraduras de sobreponer, embutir, inteligentes, picaportes, cilindros y bisagras',
+    image: '/landing/chapas.png',
+    accent: '#6366f1',
+    badgeBg: 'rgba(99, 102, 241, 0.16)',
+    badgeText: '#a5b4fc',
+  },
+  {
+    id: 'candados',
+    name: 'Candados y Seguridad',
+    shortName: 'Candados',
+    blurb: 'Candados de latón y acero, cajas fuertes, cerrojos, aldabas y cables acerados',
+    image: '/landing/candados.png',
+    accent: '#f59e0b',
+    badgeBg: 'rgba(245, 158, 11, 0.14)',
+    badgeText: '#fbbf24',
   },
   {
     id: 'electricos',
-    name: 'Eléctricos',
-    blurb: 'Placas, térmicos, regletas, alargadores',
+    name: 'Material Eléctrico',
+    shortName: 'Eléctricos',
+    blurb: 'Placas, interruptores, térmicos, regletas, alargadores y cajas de distribución',
+    image: '/landing/electricos.png',
+    accent: '#38bdf8',
+    badgeBg: 'rgba(56, 189, 248, 0.14)',
+    badgeText: '#7dd3fc',
   },
   {
     id: 'herramientas',
-    name: 'Herramientas',
-    blurb: 'Brocas de cobalto, gas y otros insumos',
+    name: 'Brocas y Herramientas',
+    shortName: 'Herramientas',
+    blurb: 'Brocas de cobalto milimétricas, gas butano e insumos técnicos de taller',
+    image: '/landing/insumos.png',
+    accent: '#10b981',
+    badgeBg: 'rgba(16, 185, 129, 0.14)',
+    badgeText: '#6ee7b7',
   },
 ];
 
@@ -52,19 +83,22 @@ const ELECTRIC_PREFIXES = [
   'estabilizador',
   'cableducto',
 ];
-const LOCK_PREFIXES = [
+const PADLOCK_PREFIXES = [
   'candado',
-  'cerradura',
+  'caja fuerte',
+  'cajas fuerte',
   'cerrojo',
+  'aldaba',
+  'pestillo',
+  'cable acerado',
+];
+const LOCK_PREFIXES = [
+  'cerradura',
   'picaporte',
   'cilindro',
-  'caja',
-  'aldaba',
-  'jalador',
-  'pestillo',
   'bisagra',
   'brazo',
-  'cable acerado',
+  'jalador',
   'muebleria',
   'tope',
 ];
@@ -75,7 +109,11 @@ export function getFamilyId(categoria) {
   const c = normalizeText(categoria);
   if (startsWithAny(c, RESIN_PREFIXES)) return 'resinas';
   if (startsWithAny(c, ELECTRIC_PREFIXES)) return 'electricos';
-  if (startsWithAny(c, LOCK_PREFIXES)) return 'cerrajeria';
+  if (startsWithAny(c, PADLOCK_PREFIXES)) return 'candados';
+  if (startsWithAny(c, LOCK_PREFIXES)) return 'cerraduras';
   return 'herramientas';
 }
 
+export function getFamilyById(id) {
+  return FAMILIES.find((f) => f.id === id) || FAMILIES[0];
+}
