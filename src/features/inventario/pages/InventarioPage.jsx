@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   Package, Plus, Search, ChevronDown, ChevronRight, Tag, AlertTriangle,
-  Warehouse, Store, TrendingUp, Edit2, Barcode, ArrowRightLeft, Download, Upload, XCircle, Trash2, Archive, ArchiveRestore
+  Warehouse, Store, TrendingUp, Edit2, Barcode, ArrowRightLeft, Download, Upload, XCircle, Trash2
 } from 'lucide-react';
 import useAutoRefresh from '../../../hooks/useAutoRefresh';
 
@@ -59,7 +59,7 @@ const InventarioPage = () => {
   const fileInputRef = React.useRef();
 
   const [modalProducto, setModalProducto] = useState(false);
-  const [confirmArchivar, setConfirmArchivar] = useState({ open: false, tipo: '', id: null, nombre: '' });
+  const [confirmEliminar, setConfirmEliminar] = useState({ open: false, tipo: '', id: null, nombre: '' });
   const location = useLocation();
 
   useEffect(() => {
@@ -219,15 +219,15 @@ const InventarioPage = () => {
     } catch { notify('Error de conexión', 'error'); }
   };
 
-  const handleArchivar = async () => {
-    const { tipo, id } = confirmArchivar;
+  const handleEliminarDefinitivo = async () => {
+    const { tipo, id } = confirmEliminar;
     const url = tipo === 'producto'
-      ? `${API}/productos/${id}/archivar`
-      : `${API}/presentaciones/${id}/archivar`;
+      ? `${API}/productos/${id}`
+      : `${API}/presentaciones/${id}`;
     try {
-      const res = await fetch(url, { method: 'PATCH' });
+      const res = await fetch(url, { method: 'DELETE' });
       const data = await res.json();
-      if (res.ok) { notify(data.mensaje, 'success'); setConfirmArchivar({ open: false, tipo: '', id: null, nombre: '' }); fetchData(); }
+      if (res.ok) { notify(data.mensaje, 'success'); setConfirmEliminar({ open: false, tipo: '', id: null, nombre: '' }); fetchData(); }
       else { notify(data.mensaje, 'error'); }
     } catch { notify('Error de conexión', 'error'); }
   };
@@ -504,9 +504,9 @@ const InventarioPage = () => {
                           <Edit2 size={16} />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Archivar Producto (ocultar sin borrar)">
-                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); setConfirmArchivar({ open: true, tipo: 'producto', id: producto.id, nombre: producto.nombre }); }} sx={{ color: 'warning.main' }}>
-                          <Archive size={16} />
+                      <Tooltip title="Eliminar Producto">
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); setConfirmEliminar({ open: true, tipo: 'producto', id: producto.id, nombre: producto.nombre }); }} sx={{ color: 'error.main' }}>
+                          <Trash2 size={16} />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
@@ -609,9 +609,9 @@ const InventarioPage = () => {
                                           <Edit2 size={16} />
                                         </IconButton>
                                       </Tooltip>
-                                      <Tooltip title="Archivar presentación (ocultar sin borrar ventas)">
-                                        <IconButton size="small" sx={{ color: 'warning.main' }} onClick={(e) => { e.stopPropagation(); setConfirmArchivar({ open: true, tipo: 'presentacion', id: pr.id, nombre: pr.nombre }); }}>
-                                          <Archive size={16} />
+                                      <Tooltip title="Eliminar presentación">
+                                        <IconButton size="small" sx={{ color: 'error.main' }} onClick={(e) => { e.stopPropagation(); setConfirmEliminar({ open: true, tipo: 'presentacion', id: pr.id, nombre: pr.nombre }); }}>
+                                          <Trash2 size={16} />
                                         </IconButton>
                                       </Tooltip>
                                     </TableCell>
@@ -788,26 +788,26 @@ const InventarioPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de Confirmación de Archivado */}
-      <Dialog open={confirmArchivar.open} onClose={() => setConfirmArchivar({ open: false, tipo: '', id: null, nombre: '' })} maxWidth="xs" fullWidth>
+      {/* Diálogo de Confirmación de Eliminación */}
+      <Dialog open={confirmEliminar.open} onClose={() => setConfirmEliminar({ open: false, tipo: '', id: null, nombre: '' })} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
-          <Box sx={{ p: 1, borderRadius: 1.5, backgroundColor: 'rgba(245,158,11,0.15)', color: '#f59e0b', display: 'flex' }}>
-            <Archive size={20} />
+          <Box sx={{ p: 1, borderRadius: 1.5, backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', display: 'flex' }}>
+            <Trash2 size={20} />
           </Box>
-          <Typography variant="h6" fontWeight={700}>Archivar {confirmArchivar.tipo === 'producto' ? 'Producto' : 'Presentación'}</Typography>
+          <Typography variant="h6" fontWeight={700}>Eliminar {confirmEliminar.tipo === 'producto' ? 'Producto' : 'Presentación'}</Typography>
         </DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            ¿Estás seguro de que quieres archivar <strong>"{confirmArchivar.nombre}"</strong>?
+            ¿Eliminar <strong>"{confirmEliminar.nombre}"</strong> del sistema?
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            El {confirmArchivar.tipo === 'producto' ? 'producto' : 'la presentación'} dejará de aparecer en el almacén y la tienda, pero <strong>todas las ventas e historial quedarán intactos</strong>.
+            Se borrará de la base de datos. Las <strong>ventas ya realizadas conservan su historial</strong> con el nombre del producto.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 0, gap: 1 }}>
-          <Button onClick={() => setConfirmArchivar({ open: false, tipo: '', id: null, nombre: '' })} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
-          <Button onClick={handleArchivar} variant="contained" sx={{ textTransform: 'none', backgroundColor: '#f59e0b', '&:hover': { backgroundColor: '#d97706' } }} startIcon={<Archive size={16} />}>
-            Sí, archivar
+          <Button onClick={() => setConfirmEliminar({ open: false, tipo: '', id: null, nombre: '' })} color="inherit" sx={{ textTransform: 'none' }}>Cancelar</Button>
+          <Button onClick={handleEliminarDefinitivo} variant="contained" color="error" sx={{ textTransform: 'none' }} startIcon={<Trash2 size={16} />}>
+            Sí, eliminar
           </Button>
         </DialogActions>
       </Dialog>
