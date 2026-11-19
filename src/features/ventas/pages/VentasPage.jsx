@@ -37,6 +37,7 @@ const getLocalDateString = (d) => {
 const VentasPage = () => {
   const { user } = useAuth();
   const [stock, setStock] = useState([]);
+  const stockRequestRef = useRef(0);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -165,13 +166,16 @@ const VentasPage = () => {
   const notify = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
 
   const fetchData = useCallback(async () => {
+    const requestId = ++stockRequestRef.current;
     setLoading(true);
     try {
       const [stockRes, clientesRes] = await Promise.all([
-        fetch(`${API_INV}/productos`),
+        fetch(`${API_INV}/productos`, { cache: 'no-store' }),
         fetch(`${API_VEN}/clientes`)
       ]);
-      const productosData = await stockRes.json();
+      if (!stockRes.ok || !clientesRes.ok) throw new Error('Error al cargar datos');
+      const [productosData, clientesData] = await Promise.all([stockRes.json(), clientesRes.json()]);
+      if (requestId !== stockRequestRef.current) return;
       // Lista plana de presentaciones con stock en tienda > 0
       const presentaciones = productosData.flatMap(p =>
         p.presentaciones
@@ -179,11 +183,11 @@ const VentasPage = () => {
           .map(pr => ({ ...pr, producto: p.nombre, categoria: p.categoria, marca: p.marca, imagen_url: p.imagen_url }))
       ).sort((a, b) => a.producto.localeCompare(b.producto));
       setStock(presentaciones);
-      setClientes(await clientesRes.json());
+      setClientes(clientesData);
     } catch {
-      notify('Error al cargar datos', 'error');
+      if (requestId === stockRequestRef.current) notify('Error al cargar datos', 'error');
     } finally {
-      setLoading(false);
+      if (requestId === stockRequestRef.current) setLoading(false);
     }
   }, []);
 
@@ -282,6 +286,8 @@ const VentasPage = () => {
       const data = await res.json();
       if (res.ok) {
         notify(`✓ Venta #${data.id} registrada — Total: Bs. ${formatMonto(data.total)}`);
+        // Las lecturas iniciadas antes de confirmar la venta ya no son válidas.
+        ++stockRequestRef.current;
         
         // Cargar datos para el ticket ANTES de limpiar el carrito
         const pagoConfirmado = parseFloat(montoPagado) || total;
